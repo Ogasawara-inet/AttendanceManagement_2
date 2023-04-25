@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+		xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+		layout:decorate="~{layout/layout}">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ホーム</title>
+</head>
+<body>
+
+	<main layout:fragment="content">
+		<div class="row">
+			
+			<!-- メッセージ -->
+			<div th:replace="~{fragments/message :: message}"></div>
+			
+			<div class="col-12 text-center">
+				
+				<h1 class="mb-4">HOME</h1>
+				
+				<div class="d-flex justify-content-around mx-auto" style="max-width: 400px;">
+					
+					<!-- 未ログインまたは管理者権限を持つ場合は管理者ホームへ
+						そうでない場合（従業員権限でログイン中の場合）は
+						管理者ログインページへ -->
+					<a th:href="${user == null 
+							|| #strings.isEmpty(user.authorities[0])
+							|| #strings.contains(user.authorities[0], 'ADMIN')}
+							? @{/admin/home} : @{/admin/login}">
+						<button class="btn btn-info">管理者メニュー</button>
+					</a>
+					
+					<a th:href="@{/home}">
+						<button class="btn btn-info">従業員メニュー</button>
+					</a>
+					
+				</div>
+				
+			</div>
+		</div>
+	</main>
+
+</body>
+</html>

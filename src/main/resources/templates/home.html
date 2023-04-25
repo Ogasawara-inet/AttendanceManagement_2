@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+		xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+		layout:decorate="~{layout/layout}">
+<head>
+<meta charset="UTF-8" remove="tag">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ホーム</title>
+</head>
+<body>
+
+	<main layout:fragment="content">
+		<div class="row">
+			<div class="col-12 text-center">
+				
+				<h3 class="text-primary mb-5">ホーム</div>
+				
+				<div class="d-flex flex-column justify-content-center w-75 mx-auto" style="max-width: 400px;">
+					
+					<a th:href="@{/attendance}">
+						<button class="btn btn-info w-100 mb-3">打刻する</button>
+					</a>
+					
+					<a th:href="@{/attendance_record}">
+						<button class="btn btn-info w-100 mb-3">勤怠管理表の確認・修正</button>
+					</a>
+					
+					<a th:href="@{/monthly_report}">
+						<button class="btn btn-info w-100 mb-3">月次報告</button>
+					</a>
+					
+				</div>
+				
+			</div>
+		</div>
+	</main>
+
+</body>
+</html>

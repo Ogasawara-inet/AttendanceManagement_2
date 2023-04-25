@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+		xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+		layout:decorate="~{layout/layout}">
+<head>
+<meta charset="UTF-8" remove="tag">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>登録内容確認</title>
+</head>
+<body>
+
+	<main layout:fragment="content">
+		<div class="row">
+			
+			<!-- メッセージ -->
+			<div th:replace="~{fragments/message :: message}"></div>
+			
+			<div class="col-12 mx-auto">
+
+				<h3 class="text-primary text-center mb-4"
+						th:text="${complete ? '登録完了' : '登録内容確認'}"></h3>
+				
+				<p class="text-center mb-5" th:unless="${complete}">
+					入力内容が正しければ「登録」ボタンを押してください
+				</p>
+				
+			</div>
+			
+			<div class="col-lg-6 col-sm-9 col-12 mx-auto mb-5">
+				<form th:object="${employee}" method="post">
+					
+					<!-- CSRFトークンの生成 -->
+					<input type="hidden" th:name="${_csrf.parameterName}"
+							th:value="${_csrf.token}">
+					
+					<!-- 入力要素格納 -->
+					<input type="hidden" th:field="*{id}">
+					<input type="hidden" th:field="*{empId}">
+					<input type="hidden" th:field="*{auth}">
+					<input type="hidden" th:field="*{lastName}">
+					<input type="hidden" th:field="*{firstName}">
+					<input type="hidden" th:field="*{lastNameKana}">
+					<input type="hidden" th:field="*{firstNameKana}">
+					<input type="hidden" th:field="*{birthday}">
+					<input type="hidden" th:field="*{password}">
+					<input type="hidden" th:field="*{tel}">
+					<input type="hidden" th:field="*{email}">
+					<input type="hidden" th:field="*{location}">
+					<input type="hidden" th:field="*{dept}">
+					<input type="hidden" th:field="*{joining}">
+					
+					<input type="hidden" name="status" th:value="${status}">
+					<input type="hidden" id="auth" 
+							th:value="${user != null ? user.authorities[0] : 'NONE'}">
+					
+					
+					<!-- 入力内容表示 -->
+					<table class="table custom-table mb-5">
+					
+						<tr>
+							<td>社員ID</td>
+							<td th:unless="*{#strings.isEmpty(empId)}" 
+									th:text="*{empId}"></td>
+							<td th:if="*{#strings.isEmpty(empId)}">
+								未取得<br>
+								（※登録時に取得されます）
+							</td>
+						</tr>
+						
+						<tr>
+							<td>名前</td>
+							<td th:text="*{lastName + ' ' + firstName}"></td>
+						</tr>
+						
+						<tr>
+							<td>名前（フリガナ）</td>
+							<td th:text="*{lastNameKana + ' ' + firstNameKana}"></td>
+						</tr>
+						
+						<tr>
+							<td>生年月日</td>
+							<td th:text="*{#temporals.format(birthday, 'yyyy年MM月dd日')}"></td>
+						</tr>
+						
+						<tr>
+							<td>パスワード</td>
+							<td th:text="${hiddenPassword}"></td>
+						</tr>
+						
+						<tr>
+							<td>勤務先</td>
+							<td th:text="*{location}"></td>
+						</tr>
+						
+						<tr>
+							<td>携帯電話</td>
+							<td th:text="*{tel}"></td>
+						</tr>
+						
+						<tr>
+							<td>メールアドレス</td>
+							<td th:text="*{email}"></td>
+						</tr>
+						
+						<tr>
+							<td>部署</td>
+							<td th:text="*{dept}"></td>
+						</tr>
+						
+						<tr>
+							<td>入社日</td>
+							<td th:text="*{#temporals.format(joining, 'yyyy年MM月dd日')}"></td>
+						</tr>
+						
+						<tr>
+							<td>管理者として登録</td>
+							<td th:text="*{auth} == ${adminAuth} ? 'する' : 'しない'"></td>
+						</tr>
+						
+					</table>
+					
+					<div th:unless="${complete}" class="d-flex justify-content-around w-100">
+						<button class="btn btn-info" th:formaction="@{/admin/save_employee}"
+								style="width: 100px;">登録</button>
+						<button class="btn btn-info" th:formaction="@{/admin/register}"
+								style="width: 100px;">修正</button>
+					</div>
+					
+					<div th:if="${complete}" class="d-flex justify-content-around w-100">
+						<button class="btn btn-info" th:formaction="@{/admin/employee_list}"
+								th:formmethod="get" style="width: 200px;">
+							社員一覧へ
+						</button>
+					</div>
+					
+				</form>
+
+			</div>
+		</div>
+	</main>
+
+</body>
+</html>

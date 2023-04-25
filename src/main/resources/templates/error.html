@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+		xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+		layout:decorate="~{layout/layout}">
+<head>
+<meta charset="UTF-8" remove="tag">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>エラー</title>
+</head>
+<body>
+
+	<main layout:fragment="content">
+		
+		<div class="row mb-5">
+			<div class="col-12 text-center">
+				
+				<h1 th:text="${status}"></h1>
+				<h3 th:text="${error}"></h3>
+				
+			</div>
+		</div>
+		
+		<div class="row mb-5">
+			<div class="col">
+				<a th:href="@{/}">
+					&lt;&nbsp;ホームへ
+				</a>
+			</div>
+		</div>
+		
+	</main>
+
+</body>
+</html>

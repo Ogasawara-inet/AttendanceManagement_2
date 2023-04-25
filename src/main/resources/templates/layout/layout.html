@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+		xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+<head>
+<meta charset="UTF-8">
+
+<link th:href="@{/webjars/bootstrap/4.4.1-1/css/bootstrap.min.css}" rel="stylesheet">
+<link th:href="@{/css/style.css}" rel="stylesheet">
+
+<title>Insert title here</title>
+</head>
+<body>
+
+	<div class="container-fluid">
+		
+		<!-- ヘッダー -->
+		<!-- ログインユーザを示すuserが存在するかどうかで
+			表示するヘッダーを変える -->
+		<div th:if="${user}">
+			<div th:replace="~{fragments/header :: header-login}"></div>
+		</div>
+		<div th:unless="${user}">
+			<div th:replace="~{fragments/header :: header-nologin}"></div>
+		</div>
+		
+		<!-- コンテンツ -->
+		<div layout:fragment="content" class="px-md-5 px-0 mt-5 w-100 mx-auto"></div>
+		
+	</div>
+
+    <script th:href="@{/webjars/jquery/3.5.0/js/jquery.min.js}"></script>
+    <script th:href="@{/webjars/bootstrap/4.4.1-1/js/bootstrap.min.js}"></script>
+	
+</body>
+</html>

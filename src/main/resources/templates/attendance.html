@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+		xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+		layout:decorate="~{layout/layout}">
+<head>
+<meta charset="UTF-8" remove="tag">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>打刻</title>
+</head>
+<body>
+	
+	<main layout:fragment="content">
+		
+		<div class="row text-center mb-5">
+			<!-- 現在時刻 -->
+			<div class="text-center w-100" th:text="${#temporals.format(now, 'yyyy年MM月dd日')}"
+					style="font-size: 2.5rem"></div>
+			<div class="text-center mx-auto clock" id="clock" th:text="${#temporals.format(now, 'HH:mm:dd')}"
+					style="font-size: min(150px, 20vw)"></div>
+		</div>
+		
+		<form method="get">
+
+			<div class="row w-100 mx-auto mb-5 d-flex justify-content-around attendance_buttons"
+					style="max-width: 800px;">
+			
+				<!-- 出勤ボタン -->
+				<div class="col-md-3 col-6 mb-4 text-center">
+					<button th:if="${status == 'beforeWork'}" class="btn btn-info"
+							th:formaction="@{/start}">出勤</button>
+					<button th:unless="${status == 'beforeWork'}" class="btn btn-info" disabled>出勤</button>
+				</div>
+				
+				<!-- 退勤ボタン -->
+				<div class="col-md-3 col-6 mb-4 text-center">
+					<button th:if="${status == 'working'}" class="btn btn-info"
+							th:formaction="@{/finish}">退勤</button>
+					<button th:unless="${status == 'working'}" class="btn btn-info" disabled>退勤</button>
+				</div>
+				
+				<!-- 休憩ボタン -->
+				<div class="col-md-3 col-6 mb-4 text-center">
+					<button th:if="${status == 'working'}" class="btn btn-info"
+							th:formaction="@{/breakStart}">休憩</button>
+					<button th:unless="${status == 'working'}" class="btn btn-info" disabled>休憩</button>
+				</div>
+				
+				<!-- 休憩終了ボタン -->
+				<div class="col-md-3 col-6 mb-4 text-center">
+					<button th:if="${status == 'onBreak'}" class="btn btn-info"
+							th:formaction="@{/breakFinish}">休憩終了</button>
+					<button th:unless="${status == 'onBreak'}" class="btn btn-info" disabled>休憩終了</button>
+				</div>
+				
+			</div>
+				
+		</form>
+		
+		<script src="/js/Clock.js"></script>
+			
+	</main>
+
+</body>
+</html>

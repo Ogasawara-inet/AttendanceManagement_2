@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+		xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+		layout:decorate="~{layout/layout}">
+<head>
+<meta charset="UTF-8" remove="tag">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>月次報告確認</title>
+</head>
+<body>
+
+	<main layout:fragment="content">
+		<div class="row">
+			
+			<!-- メッセージ -->
+			<div th:replace="~{fragments/message :: message}"></div>
+			
+			<div class="col-lg-6 col-sm-9 col-12 mx-auto">
+				
+				<!-- 従業員IDを入力すると先月までの
+					未承認の勤怠管理表のリストが表示される（yyyy-MM形式） -->
+				<h3 class="text-primary text-center mb-5">月次報告確認</h3>
+				
+				
+				<!-- 検索機能 -->
+				<form th:action="@{/admin/approval_report(searchword=${searchword}, showApproved=${showApproved})}"
+						class="mb-5">
+					<div class="input-group mb-3">
+						<input type="text" class="form-control" 
+								placeholder="氏名、または利用者IDで検索"
+								name="searchword" th:value="${searchword}">
+						<button class="btn btn-primary">検索</button>
+					</div>
+					<div class="form-check mb-3">
+						<input th:if="${showApproved}" type="checkbox" class="form-check-input" 
+								name="showApproved" id="showApproved" value="checked" checked>
+						<input th:unless="${showApproved}" type="checkbox" class="form-check-input" 
+								name="showApproved" id="showApproved" value="checked">
+						<label class="form-check-label" for="showApproved">
+							承認済みの月次報告も表示
+						</label>
+					</div>
+				</form>
+				
+				
+				
+				<!-- リスト -->
+				<!-- 検索していない（getListがfalse）なら表示しない -->
+				<div th:if=${getList}>
+					
+					<table th:unless="${#lists.isEmpty(monthlyReportList)}"
+							class="table table-sm mb-5">
+							
+						<thead>
+							<tr>
+								<th>状態</th>
+								<th>名前</th>
+								<th>日付</thclass>
+								<th class="w-25"></th>
+							</tr>
+						</thead>
+							
+						<tbody>
+							<div th:each="monthlyReport : ${monthlyReportList}" th:object="${monthlyReport}">
+								
+								<tr>
+									<td th:text="*{#strings.isEmpty(approvalId) ? '未承認' : '承認済'}"
+											class="align-middle"></td>
+									
+									<td th:text="*{name + ' (' + empId + ')'}"
+											class="align-middle"></td>
+											
+									<td th:text="*{#temporals.format(indexMonth, 'yyyy-MM')}"
+											class="align-middle"></td>
+									
+									<td>
+										<a th:href="@{/admin/approval_confirm
+												(empId = *{empId}, month = *{indexMonth})}">
+											<button class="btn btn-info w-100">確認</button>
+										</a>
+									</td>
+								</tr>
+								
+							</div>
+						</tbody>
+					</table>
+					
+					<!-- リストが空の場合 -->
+					<div th:if="${#lists.isEmpty(monthlyReportList)}" 
+							class="text-center mx-auto mb-5">
+						該当する月次報告はありません
+					</div>
+						
+				</div>
+				
+			</div>
+		</div>
+		
+		<div class="row mb-5">
+			<div class="col-12">
+				<a th:href="@{/admin/home}">
+					&lt;&nbsp;ホームに戻る
+				</a>
+			</div>
+		</div>
+		
+	</main>
+
+</body>
+</html>

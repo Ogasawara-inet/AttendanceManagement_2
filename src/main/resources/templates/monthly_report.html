@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+		xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+		layout:decorate="~{layout/layout}">
+<head>
+<meta charset="UTF-8" remove="tag">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>月次報告</title>
+</head>
+<body>
+
+	<main layout:fragment="content">
+		<div class="row">
+			
+			<div th:replace="~{fragments/message :: message}"></div>
+			
+			<div class="col-8 mx-auto">
+				
+				<h3 class="text-primary text-center mb-5">月次報告</h3>
+				
+				<div th:if="${#lists.isEmpty(monthList)}"
+						class="text-center">
+					未提出の勤怠管理表はありません
+				</div>
+				
+				<table class="table custom-table table-bg text-center mb-5">
+					<div th:each="month : ${monthList}" th:object="${month}">
+						<tr>
+							<td>
+								<a th:href="@{/monthly_report_confirm(month = ${month})}">
+									<h4 th:text="${#temporals.format(month, 'yyyy年MM月分')}" 
+											class="text-dark"></h4>
+								</a>
+							</td>
+						</tr>
+					</div>
+				</table>
+				
+				<a th:href="@{/home}">
+					&lt;&nbsp;ホームに戻る
+				</a>
+				
+			</div>
+		</div>
+	</main>
+
+</body>
+</html>

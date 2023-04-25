@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Insert title here</title>
+</head>
+<body>
+
+	<!-- メッセージはcolとして挿入する -->
+
+	<div th:fragment="message" th:if="${msg != null || warn != null}"  
+			class="col-12 justify-content-center mx-auto mb-4" id="message">
+		
+		<!-- メッセージ表示エリア -->
+			
+		<div th:if="${msg}">
+			<div class="alert alert-info mx-auto" th:text="${msg}"
+					style="max-width: 800px;"></div>
+		</div>
+		
+		<div th:if="${warn}">
+			<div class="alert alert-danger mx-auto" th:text="${warn}"
+					style="max-width: 800px;"></div>
+		</div>
+		
+	</div>
+
+</body>
+</html>

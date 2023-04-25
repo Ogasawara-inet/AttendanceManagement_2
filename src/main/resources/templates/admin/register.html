@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+		xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+		layout:decorate="~{layout/layout}">
+<head>
+<meta charset="UTF-8" remove="tag">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title th:text="${status == 'register' 
+		? '社員登録' : '登録情報変更'}">タイトル</title>
+</head>
+<body>
+
+	<main layout:fragment="content">
+		<div class="row">
+			
+			<!-- メッセージ -->
+			<div th:replace="~{fragments/message :: message}"></div>
+			
+			<div class="col-lg-6 col-sm-9 col-12 mx-auto mb-4">
+				
+				<h3 class="text-primary text-center mb-4" 
+						th:text="${status == 'register' ? '社員登録' : '登録情報変更'}"></h3>
+				
+				<form method="post" th:object="${employee}">
+					
+					<!-- CSRFトークンの生成
+						403エラー回避のため -->
+					<input type="hidden" th:name="${_csrf.parameterName}"
+							th:value="${_csrf.token}">
+					
+					<!-- 入力欄がないものを格納 -->
+					<input type="hidden" th:field="*{id}">
+					<input type="hidden" th:field="*{empId}">
+					
+					<input type="hidden" name="status" th:value="${status}">
+					<input type="hidden" id="auth" 
+							th:value="${user != null ? user.authorities[0] : 'NONE'}">
+					
+					
+					<div class="mb-4">
+						
+						<label class="form-label">
+							<span class="bg-danger text-white rounded px-2 py-1 mr-1">
+								必須</span>
+							名前
+						</label>
+						
+						<div class="d-flex">
+							<label class="form-label my-auto">姓：</label>
+							<input class="form-control" type="text" 
+									th:field="*{lastName}" placeholder="例：山田"
+									th:errorclass="is-invalid">
+							<label class="form-label my-auto ml-3">名：</label>
+							<input class="form-control" type="text" 
+									th:field="*{firstName}" placeholder="例：太郎"
+									th:errorclass="is-invalid">
+						</div>
+						<div class="text-danger" th:errors="*{lastName}"></div>
+						<div class="text-danger" th:errors="*{firstName}"></div>
+					</div>
+					
+					<div class="mb-4">
+							
+						<label class="form-label">
+							<span class="bg-danger text-white rounded px-2 py-1 mr-1">
+								必須</span>
+							名前（フリガナ）
+						</label>
+						
+						<div class="d-flex">
+							<label class="form-label my-auto">姓：</label>
+							<input class="form-control" type="text" 
+									th:field="*{lastNameKana}" placeholder="例：ヤマダ"
+									th:errorclass="is-invalid">
+							
+							<label class="form-label my-auto ml-3">名：</label>
+							<input class="form-control" type="text" 
+									th:field="*{firstNameKana}" placeholder="例：タロウ"
+									th:errorclass="is-invalid">
+						</div>
+						<div class="text-danger" th:errors="*{lastNameKana}"></div>
+						<div class="text-danger" th:errors="*{firstNameKana}"></div>
+					</div>
+					
+					<div class="mb-4">
+						<label class="form-label">
+							<span class="bg-danger text-white rounded px-2 py-1 mr-1">
+								必須</span>
+							生年月日：
+						</label>
+						<input class="form-control" type="date" th:field="*{birthday}"
+								th:errorclass="is-invalid">
+						<div class="text-danger" th:errors="*{birthday}"></div>
+					</div>
+					
+					<div class="mb-4">
+						<label class="form-label">
+							<span class="bg-danger text-white rounded px-2 py-1 mr-1">
+								必須</span>
+							パスワード：
+						</label>
+						<input class="form-control" type="password" th:field="*{password}"
+								th:errorclass="is-invalid">
+						<div class="text-danger" th:errors="*{password}"></div>
+					</div>
+					
+					<div class="mb-4">
+						<label class="form-label">
+							<span class="bg-danger text-white rounded px-2 py-1 mr-1">
+								必須</span>
+							パスワード（再入力）：
+						</label>
+						<input th:unless="*{#fields.hasErrors('password')}"
+								class="form-control" type="password" name="passwordAgain">
+						<input th:if="*{#fields.hasErrors('password')}"
+								class="form-control is-invalid" type="password" name="passwordAgain">
+					</div>
+					
+					<div class="mb-4">
+						<label class="form-label">携帯電話：</label>
+						<input class="form-control" type="tel" th:field="*{tel}">
+					</div>
+					
+					<div class="mb-4">
+						<label class="form-label">メールアドレス：</label>
+						<input class="form-control" type="email" th:field="*{email}">
+					</div>
+					
+					<div class="mb-4">
+						<label class="form-label">勤務先：</label>
+						<input class="form-control" type="text" th:field="*{location}">
+					</div>
+					
+					<div class="mb-4">
+						<label class="form-label">部署：</label>
+						<input class="form-control" type="text" th:field="*{dept}">
+					</div>
+					
+					<div class="mb-4">
+						<label class="form-label">入社日</label>
+						<input class="form-control" type="date" th:field="*{joining}">
+					</div>
+					
+					<div th:if="${status == 'register' || status == 'revice'}" 
+							class="m-4">
+						<input th:if="*{auth} == ${adminAuth}" class="form-check-input" type="checkbox" 
+								id="adminCheck" name="adminCheck" value="checked" checked>
+						<input th:unless="*{auth} == ${adminAuth}" class="form-check-input" type="checkbox" 
+								id="adminCheck" name="adminCheck" value="checked">
+						<label class="form-check-label" for="adminCheck">管理者として登録</label>
+					</div>
+					<input th:unless="${status == 'register' || status == 'revice'}"
+							type="hidden" name="adminCheck" 
+							value="*{auth} == ${adminAuth} ? 'checked' : ''">
+					
+					<!-- 登録ボタン -->
+					<div class="my-5">
+						<button th:if="${status == 'register'}" class="btn btn-primary px-3"
+								th:formaction="@{/admin/register_confirm}">登録する</button>
+						
+						<button th:if="${status == 'revice'}" class="btn btn-primary px-3"
+								th:formaction="@{/admin/register_confirm}">変更する</button>
+						
+						<button th:if="${status == 'adminRevice' || status == 'empRevice'}" class="btn btn-primary px-3"
+								th:formaction="@{/revice}">変更を反映する</button>
+					</div>
+					
+				</form>
+				
+			</div>
+		</div>
+		
+		<div class="row mb-5">
+			<div class="col">
+				<a th:href="${status} == 'empRevice' ? @{/home} : @{/admin/home}">
+					&lt;&nbsp;ホームに戻る
+				</a>
+			</div>
+		</div>
+		
+	</main>
+
+</body>
+</html>

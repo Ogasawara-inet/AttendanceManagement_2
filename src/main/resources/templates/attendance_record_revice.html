@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+		xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+		layout:decorate="~{layout/layout}">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>勤怠管理表修正</title>
+</head>
+<body>
+
+	<div layout:fragment="content">
+		
+		<div class="row">
+			<div class="col-12">
+				
+				<h3 class="mb-3" style="border-bottom: 3px double black;">
+						勤怠管理表</h3>
+				
+				<!-- 月次報告が承認済みの場合 -->
+				<div th:if="${reportStatus == 'approved'}">
+					<div class="alert alert-danger">
+						この勤怠管理表は月次報告として承認済みです。<br>
+						変更した場合は現在の月次報告は破棄されますので、<br>
+						再度月次報告を提出したのち、管理者の承認が必要になります。
+					</div>
+				</div>
+				
+				<!-- 月次報告が提出済みの場合 -->
+				<div th:if="${reportStatus == 'submitted'}">
+					<div class="alert alert-info">
+						この勤怠管理表は月次報告として提出済みです。<br>
+						変更した場合は現在の月次報告は破棄されますので、<br>
+						再度月次報告を提出してください。
+					</div>
+				</div>
+				
+				
+				
+				<!-- 勤怠管理表の月（yyyy年MM月）と、月次報告の状態 -->
+				<div class="d-flex mb-4 align-middle"
+						style="border-bottom: 1px double black;">
+					<h4 th:text="${#temporals.format(month, 'yyyy年MM月')}" class="mb-0"></h4>
+							
+					<div class="ml-4 mt-1">
+						月次報告：
+						<span th:if="${reportStatus == 'approved'}"
+								class="bg-danger text-white rounded-pill px-2 py-1 m-0">
+							承認済</span>
+						<span th:if="${reportStatus == 'submitted'}"
+								class="bg-primary text-white rounded-pill px-2 py-1 m-0">
+							提出済</span>
+						<span th:unless="${reportStatus}"
+								class="px-2 py-1 m-0">未提出</span> 
+					</div>
+
+				</div>
+				
+				
+				
+				<!-- monthを格納 -->
+				<input type="hidden" th:field="${month}">
+						
+				<!-- 日付指定 -->
+				<!-- 入社した月から現在の月までをselectでプルダウンにする -->
+				<form th:action="@{/attendance_record_revice(month = ${month})}">
+					<select class="form-control w-25" name="month" onchange="submit(this.form)"
+							style="min-width: 200px;">
+						<option th:value="${month}" selected>期間を選択&nbsp;</option>
+						<div th:each="m : ${monthList}">
+							<option th:value="${m}" th:text="${#temporals.format(m, 'yyyy-MM')}"></option>
+						</div>
+					</select>
+				</form>
+
+			</div>
+			
+		</div>
+		
+		<!-- 出勤情報 -->
+		<form class="row mb-5" th:action="@{/attendance_record_save}" th:object="${calender}" th:method="post">
+				
+			<!-- 入力反映ボタン -->
+			<div class="col-12 text-center mt-5 mb-3">
+				<button class="btn btn-info w-50" type="submit">入力を反映する</button>
+			</div>
+				
+				
+				
+			<div class="col-6">
+			
+				<!-- 社員情報 -->
+				<table class="table table-sm custom-table mt-4 mb-5 mr-3" 
+						th:object="${employee}">
+					<tr>
+						<th>氏名</th>
+						<td class="w-50" th:text="*{lastName + ' ' + firstName}"></td>
+					</tr>
+					<tr>
+						<th>利用者ID</th>
+						<td th:text="*{empId}"></td>
+					</tr>
+					<tr>
+						<th>勤務先</th>
+						<td>
+							<input type="text" name="location" class="form-control"
+									th:value="${#strings.isEmpty(report.location)} 
+											? *{location} : ${report.location}">
+						</td>
+					</tr>
+					<tr>
+						<th>勤務先部署</th>
+						<td>
+							<input type="text" name="dept" class="form-control"
+									th:value="${#strings.isEmpty(report.dept)}
+											? *{dept} : ${report.dept}">
+						</td>
+					</tr>
+				</table>
+				
+			</div>
+				
+			<div class="col-6">
+				
+				<table class="table table-sm custom-table mt-4 mb-5" 
+						th:object="${report}">
+					<tr>
+						<th>承認者氏名</th>
+						<td class="w-50" th:text="*{approvalName}"></td>
+					</tr>
+					<tr>
+						<th>承認者ID</th>
+						<td th:text="*{approvalId}"></td>
+					</tr>
+					<tr>
+						<th>承認日</th>
+						<td th:text="*{#temporals.format(approvalDate, 'yyyy/MM/dd')}"></td>
+					</tr>
+				</table>
+				
+			</div>
+			
+
+			
+			<div class="col">
+				
+				<!-- 祝日の一覧のリスト取得に問題があった場合のメッセージ -->
+				<div style="display: none;">
+					<div class="alert alert-danger text-center">
+						祝日一覧の取得中に問題が発生したため、日付の色が正常に表示されていない可能性があります。
+					</div>
+				</div>
+				
+				<!-- テーブル -->
+				<div class="table-responsive">
+					<table class="table table-sm custom-table text-center mx-auto
+							attendance_record_table" style="min-width: 600px;">
+						
+						<thead>
+							<tr>
+								<th>日付</th>
+								<th style="width:15%;">区分</th>
+								<th>始業時刻</th>
+								<th>終業時刻</th>
+								
+								<th style="width:10%;">実働時間<br>(分)</th>
+								<th style="width:10%;">休憩時間<br>(分)</th>
+								<th>備考</th>
+							</tr>
+						</thead>
+						
+						<tbody>
+							
+							<!-- ここのth:eachのdateは変数名、stはステータス -->
+							<div th:each="date, st : *{workTimeList}">
+								
+								<tr>
+									
+									<!-- 入力欄のない項目 -->
+									<input type="hidden" th:field="*{workTimeList[__${st.index}__].id}">
+									<input type="hidden" th:field="*{workTimeList[__${st.index}__].empId}">
+									<input type="hidden" th:field="*{workTimeList[__${st.index}__].workDate}"
+											th:id="*{'dateInput' + #temporals.day(workTimeList[__${st.index}__].workDate)}">
+									
+									<!-- 日付（jsで色変更） -->
+									<td th:text="*{#temporals.format(workTimeList[__${st.index}__].workDate, 'M/d (EEE)')}"
+											th:id="*{'date' + #temporals.day(workTimeList[__${st.index}__].workDate)}"
+											class="px-1"></td>
+									
+									<!-- 区分 -->
+									<td>
+										<select class="form-control" th:field="*{workTimeList[__${st.index}__].division}">
+											<!-- divisionがnullまたは空欄なら空白をselectedに -->
+											<option th:unless="*{workTimeList[__${st.index}__].division}" value="" selected></option>
+											<option th:if=*{workTimeList[__${st.index}__].division} value=""></option>
+											<div th:each="d : ${divisionList}">
+												<!-- dの値がdivisionと同じ場合はselectedに -->
+												<th:block th:switch="*{workTimeList[__${st.index}__].division}">
+													<option th:case="${d}" th:value="${d}" th:text="${d}" selected></option>
+													<option th:case=* th:value="${d}" th:text="${d}"></option>
+												</th:block>
+											</div>
+										</select>
+									</td>
+									
+									<!-- 始業時刻 -->
+									<td>
+										<input class="form-control" type="time" th:field="*{workTimeList[__${st.index}__].startTime}">
+									</td>
+									
+									<!-- 終業時刻 -->
+									<td>
+										<input class="form-control" type="time" th:field="*{workTimeList[__${st.index}__].finishTime}">
+									</td>
+									
+									<!-- 実働時間（自動入力） -->
+									<td>
+										<input class="form-control" type="number" 
+												th:field="*{workTimeList[__${st.index}__].workingTime}" readonly>
+									</td>
+									
+									<!-- 休憩時間 -->
+									<td>
+										<input class="form-control" type="number" 
+												th:field="*{workTimeList[__${st.index}__].breakTime}">
+									</td>
+									
+									<!-- 備考 -->
+									<td>
+										<textarea class="form-control" type="text" rows="1"
+												th:field="*{workTimeList[__${st.index}__].note}"></textarea>
+									</td>
+									
+								</tr>
+								
+							</div>
+							
+							<!-- 祝日の一覧 -->
+							<input type="hidden" id="holidays" th:value="${holidays}">
+							<!-- 日付の色変更 -->
+							<script src="/js/HolidayCheck.js"></script>
+							
+						</tbody>
+						
+					</table>
+					
+				</div>
+					
+			</div>
+			
+		</form>
+		
+	</div>
+
+</body>
+</html>

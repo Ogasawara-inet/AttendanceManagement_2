@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Insert title here</title>
+</head>
+<body>
+
+	<div th:fragment="pagination">
+		
+		<ul th:if="${page.getTotalPages() != 0}" class="pagination justify-content-center">
+			
+			<!-- 最初のページ（現在が最初のページなら無効） -->
+			<li th:if="${page.hasPrevious()}" class="page-item">
+				<a class="page-link" th:href="@{#(page = 0)}">
+					&laquo;&nbsp;
+				</a>
+			</li>
+			<li th:unless="${page.hasPrevious()}" class="page-item disabled">
+				<a class="page-link">
+					&laquo;&nbsp;
+				</a>
+			</li>
+			
+			<!-- 2つ前のページ -->
+			<li th:if="${page.hasNext() && page.getSize() >= 3}" class="page-item">
+				<a class="page-link" th:text="${page.getNumber() - 2 + 1}"
+						th:href="@{#(page = ${page.getNumber() - 2})}"></a>
+			</li>
+			
+			<!-- 1つ前のページ -->
+			<li th:if="${page.hasPrevious()}" class="page-item">
+				<a class="page-link" th:text="${page.getNumber() - 1 + 1}"
+						th:href="@{#(page = ${page.getNumber() - 1})}"></a>
+			</li>
+			
+			<!-- 現在のページ -->
+			<li class="page-item active">
+				<a class="page-link" th:text="${page.getNumber() + 1}"></a>
+			</li>
+			
+			<!-- 現在のページ（テスト用） -->
+<!--			<li class="page-item active">-->
+<!--				<a class="page-link" th:text="${page.getNumber() + 0 + 1}"-->
+<!--						th:href="@{#(page = ${page.getNumber()})}"></a>-->
+<!--			</li>-->
+			
+			<!-- 1つ先のページ -->
+			<li th:if="${page.hasNext()}" class="page-item">
+				<a class="page-link" th:text="${page.getNumber() + 1 + 1}"
+						th:href="@{#(page = ${page.getNumber() + 1})}"></a>
+			</li>
+			
+			<!-- 2つ先のページ -->
+			<li th:if="${page.hasPrevious() && page.getSize() >= 3}" class="page-item">
+				<a class="page-link" th:text="${page.getNumber() + 2 + 1}"
+						th:href="@{#(page = ${page.getNumber() + 2})}"></a>
+			</li>
+			
+			<!-- 最後のページ（現在が最後のページなら無効） -->
+			<li th:if="${page.hasNext()}" class="page-item">
+				<a class="page-link" th:href="@{#(page = ${page.getSize - 1})}">
+					&nbsp;&raquo;
+				</a>
+			</li>
+			<li th:unless="${page.hasNext()}" class="page-item disabled">
+				<a class="page-link">
+					&nbsp;&raquo;
+				</a>
+			</li>
+			
+		</ul>
+		
+	</div>
+
+</body>
+</html>
