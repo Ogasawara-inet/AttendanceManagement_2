@@ -119,9 +119,10 @@ public class AttendanceController {
 		
 		workTimeRepository.save(workTime);
 		
-		// 月次報告があれば削除
-		monthlyReportRepository.deleteByEmpIdAndIndexMonth(
-				user.getUsername(), date.withDayOfMonth(1));
+		
+		
+		// 月次報告があれば未提出にする
+		clearReport(user.getUsername(), date);
 		
 		return "redirect:/attendance";
 	}
@@ -156,7 +157,9 @@ public class AttendanceController {
 		
 		workTimeRepository.save(workTime);
 		
-		// 月次報告があれば削除
+		
+		
+		// 月次報告があれば未提出にする
 		clearReport(user.getUsername(), date);
 		
 		return "redirect:/attendance";
@@ -182,7 +185,9 @@ public class AttendanceController {
 		
 		workTimeRepository.save(workTime);
 		
-		// 月次報告があれば削除
+		
+		
+		// 月次報告があれば未提出にする
 		clearReport(user.getUsername(), date);
 		
 		
@@ -214,9 +219,10 @@ public class AttendanceController {
 		
 		workTimeRepository.save(workTime);
 		
-		// 月次報告があれば削除
-		clearReport(user.getUsername(), date);
 		
+		
+		// 月次報告があれば未提出にする
+		clearReport(user.getUsername(), date);
 		
 		return "redirect:/attendance";
 	}
@@ -288,7 +294,8 @@ public class AttendanceController {
 	@PostMapping("/attendance_record_save")
 	public String attendance_record_save(@AuthenticationPrincipal UserDetails user,
 			WorkTimeCalender calender, 
-			@RequestParam String location, @RequestParam String dept,
+			@RequestParam(required=false) String location, 
+			@RequestParam(required=false) String dept,
 			RedirectAttributes redirectAttributes,
 			Model model) {
 		
@@ -322,42 +329,20 @@ public class AttendanceController {
 		// 月を取得
 		LocalDate month = list.get(0).getWorkDate().withDayOfMonth(1);
 		
+
 		
 		
-		// 月次報告があれば未提出にし、
-		// なければlocationとdeptを設定（未承認で）
-		Optional<MonthlyReport> reportOpt
-				= monthlyReportRepository.findByEmpIdAndIndexMonth(
-						user.getUsername(), month);
+		// 月次報告があれば削除する
+		// その後locationとdeptを設定（未承認で）
+		monthlyReportRepository.deleteByEmpIdAndIndexMonth(
+				user.getUsername(), month);
 		
-		if(reportOpt.isPresent()) {
-			
-			MonthlyReport report = reportOpt.get();
-			
-			// 値を「未提出」に変更
-			report.setSubmitted(false);
-			
-			// 承認済みの場合、承認に関する値を削除
-			if(report.getApprovalId() != null) {
-				report.setApprovalId(null);
-				report.setApprovalName(null);
-				report.setApprovalDate(null);
-			}
-			
-			// 変更を保存
-			monthlyReportRepository.save(report);
-			
-		} else {
-			
-			MonthlyReport report = new MonthlyReport();
-			report.setEmpId(user.getUsername());
-			report.setIndexMonth(month);
-			report.setLocation(location);
-			report.setDept(dept);
-			
-			monthlyReportRepository.save(report);
-			
-		}
+		MonthlyReport report = new MonthlyReport(
+				user.getUsername(), null, month);
+		report.setLocation(location);
+		report.setDept(dept);
+		
+		monthlyReportRepository.save(report);
 		
 		
 		
@@ -425,27 +410,31 @@ public class AttendanceController {
 	@GetMapping("/submit")
 	public String submit(@AuthenticationPrincipal UserDetails user,
 			@RequestParam LocalDate month,
-			@RequestParam String location, @RequestParam String dept,
 			RedirectAttributes redirectAttributes){
 		
 		Optional<MonthlyReport> reportOpt = 
 				monthlyReportRepository.findByEmpIdAndIndexMonth(user.getUsername(), month);
 
-		// 月次報告がなければ新規作成、すでにあれば名前、勤務地、部署を上書きする
-		MonthlyReport report = null;
+		// 月次報告があればそれを取得し、なければ新規作成する
+		MonthlyReport report;
 		Employee employee = 
 				employeeRepository.findByEmpId(user.getUsername()).orElseThrow();
 		if(reportOpt.isEmpty()) {
 			report = new MonthlyReport(
 							user.getUsername(),					
 							employee.getLastName() + " " + employee.getFirstName(),
-							month, location, dept);
+							month);
 		} else {
 			report = reportOpt.get();
-			report.setName(employee.getLastName() + " " + employee.getFirstName());
-			report.setLocation(location);
-			report.setDept(dept);
 		}
+		
+		// 名前を設定する。その後勤務先と部署が設定されていなければ
+		// 自分の現在の勤務先と部署を入力する。
+		report.setName(employee.getLastName() + " " + employee.getFirstName());
+		if(report.getLocation() == null) report.setLocation(employee.getLocation());
+		if(report.getDept() == null) report.setDept(employee.getDept());
+		
+		
 		
 		// submittedをtrueにして提出
 		report.setSubmitted(true);
@@ -527,7 +516,6 @@ public class AttendanceController {
 		
 		
 	}
-	
 	
 	
 	

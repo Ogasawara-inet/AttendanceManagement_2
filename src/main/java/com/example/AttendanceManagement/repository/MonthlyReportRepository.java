@@ -17,13 +17,13 @@ public interface MonthlyReportRepository extends JpaRepository<MonthlyReport, Lo
 	public List<MonthlyReport> findByEmpIdAndSubmittedTrueOrderByIndexMonthDesc(String empId);
 	
 	// 従業員IDで検索（未承認のみ）
-	public List<MonthlyReport> findByEmpIdAndSubmittedTrueAndApprovalIdIsNullOrderByIndexMonthDesc(String empId);
+	public List<MonthlyReport> findByEmpIdAndSubmittedTrueAndApprovalIdIsNullOrderByIndexMonth(String empId);
 	
 	// 名前で検索
 	public List<MonthlyReport> findByNameLikeAndSubmittedTrueOrderByIndexMonthDesc(String name);
 	
 	// 名前で検索（未承認のみ）
-	public List<MonthlyReport> findByNameLikeAndSubmittedTrueAndApprovalIdIsNullOrderByIndexMonthDesc(String name);
+	public List<MonthlyReport> findByNameLikeAndSubmittedTrueAndApprovalIdIsNullOrderByIndexMonth(String name);
 	
 	
 	

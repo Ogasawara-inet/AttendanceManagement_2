@@ -224,16 +224,17 @@ public class AdminController {
 		
 		
 		// 従業員IDがない場合は生成
+		// IDはアルファベッド1文字+番号6桁
 		if(employee.getEmpId() == null || employee.getEmpId().isBlank()) {
 			
 			String empId;
 			boolean isAdmin = (employee.getAuth() == Auth.ADMIN);
 			long num = employeeRepository.count();
 			do {
-				empId = String.format("%s%08d", 
+				empId = String.format("%s%06d", 
 						(isAdmin ? "A" : "E"), num);
 				num++;
-				if(num >= 100_000_000) num = 0; // 9桁になったら0に戻す
+				if(num >= 1_000_000) num = 0; // 7桁になったら0に戻す
 			}while(employeeRepository.findByEmpId(empId).isPresent());
 			
 			employee.setEmpId(empId);
@@ -387,7 +388,7 @@ public class AdminController {
 						.findByEmpIdAndSubmittedTrueOrderByIndexMonthDesc(searchword);
 			} else {
 				monthlyReportList = monthlyReportRepository
-						.findByEmpIdAndSubmittedTrueAndApprovalIdIsNullOrderByIndexMonthDesc(searchword);
+						.findByEmpIdAndSubmittedTrueAndApprovalIdIsNullOrderByIndexMonth(searchword);
 			}
 			
 			// 従業員IDとして検索して見つからなかった場合、
@@ -404,7 +405,7 @@ public class AdminController {
 							.findByNameLikeAndSubmittedTrueOrderByIndexMonthDesc("%" + s + "%");
 				} else {
 					monthlyReportList = monthlyReportRepository
-							.findByNameLikeAndSubmittedTrueAndApprovalIdIsNullOrderByIndexMonthDesc("%" + s + "%");
+							.findByNameLikeAndSubmittedTrueAndApprovalIdIsNullOrderByIndexMonth("%" + s + "%");
 				}
 
 				// その中から重複要素を削除し、

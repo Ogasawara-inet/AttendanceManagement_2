@@ -21,8 +21,8 @@
 				<div th:if="${reportStatus == 'approved'}">
 					<div class="alert alert-danger">
 						この勤怠管理表は月次報告として承認済みです。<br>
-						変更した場合は現在の月次報告は破棄されますので、<br>
-						再度月次報告を提出したのち、管理者の承認が必要になります。
+						修正した場合は承認済みの月次報告は破棄されますので、<br>
+						再度月次報告を提出したのち、管理者の承認を受けてください。
 					</div>
 				</div>
 				
@@ -30,7 +30,7 @@
 				<div th:if="${reportStatus == 'submitted'}">
 					<div class="alert alert-info">
 						この勤怠管理表は月次報告として提出済みです。<br>
-						変更した場合は現在の月次報告は破棄されますので、<br>
+						修正した場合は提出済みの月次報告は破棄されますので、<br>
 						再度月次報告を提出してください。
 					</div>
 				</div>
@@ -97,7 +97,7 @@
 						<td class="w-50" th:text="*{lastName + ' ' + firstName}"></td>
 					</tr>
 					<tr>
-						<th>利用者ID</th>
+						<th>社員ID</th>
 						<td th:text="*{empId}"></td>
 					</tr>
 					<tr>

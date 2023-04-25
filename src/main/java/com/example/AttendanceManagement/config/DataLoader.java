@@ -38,7 +38,7 @@ public class DataLoader implements ApplicationRunner {
 		
 		
 		/*
-		 * 以下はサンプル、最初の1回（adminが登録されていない場合）のみ表示
+		 * 以下はテスト用
 		 */
 		
 		// 管理者ユーザーadminを作成
@@ -94,9 +94,10 @@ public class DataLoader implements ApplicationRunner {
 		
 		
 		// 承認設定
-		MonthlyReport monthlyReport = 
-				new MonthlyReport("emp01", "遠藤 楓子", LocalDate.of(2023, 3, 1), "本社", "××部");
-		monthlyReportRepository.save(monthlyReport);
+		MonthlyReport teport = 
+				new MonthlyReport("emp01", "遠藤 楓子", LocalDate.of(2023, 3, 1));
+		teport.setSubmitted(true);
+		monthlyReportRepository.save(teport);
 		
 		
 

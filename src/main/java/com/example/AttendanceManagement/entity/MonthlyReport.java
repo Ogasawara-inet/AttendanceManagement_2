@@ -41,13 +41,10 @@ public class MonthlyReport {
 	
 	
 	// 月次報告提出時に使用するコンストラクタ
-	public MonthlyReport(String empId, String name, LocalDate indexMonth,
-			String location, String dept){
+	public MonthlyReport(String empId, String name, LocalDate indexMonth){
 		this.empId = empId;
 		this.name = name;
 		this.indexMonth = indexMonth;
-		this.location = location;
-		this.dept = dept;
 	}
 	
 	
