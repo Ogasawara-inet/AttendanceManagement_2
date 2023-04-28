@@ -61,12 +61,7 @@
 					
 						<tr>
 							<td>社員ID</td>
-							<td th:unless="*{#strings.isEmpty(empId)}" 
-									th:text="*{empId}"></td>
-							<td th:if="*{#strings.isEmpty(empId)}">
-								未取得<br>
-								（※登録時に取得されます）
-							</td>
+							<td th:text="*{empId}"></td>
 						</tr>
 						
 						<tr>

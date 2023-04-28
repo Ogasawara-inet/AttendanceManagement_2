@@ -36,6 +36,7 @@ import com.example.AttendanceManagement.entity.Passwords;
 import com.example.AttendanceManagement.repository.EmployeeRepository;
 import com.example.AttendanceManagement.repository.MonthlyReportRepository;
 import com.example.AttendanceManagement.util.Auth;
+import com.example.AttendanceManagement.validator.EmployeeValidator;
 import com.example.AttendanceManagement.validator.PasswordsValidator;
 
 import lombok.RequiredArgsConstructor;
@@ -51,11 +52,16 @@ public class AdminController {
 	private final PasswordEncoder passwordEncoder;
 	
 	// カスタムバリデーター
+	private final EmployeeValidator employeeValidator;
 	private final PasswordsValidator passwordsValidator;
 	
 	// バリデーター登録
+	@InitBinder("employee")
+	public void employeeInitBinder(WebDataBinder binder) {
+		binder.addValidators(employeeValidator);
+	}
 	@InitBinder("passwords")
-	public void initBinder(WebDataBinder binder) {
+	public void passwordsInitBinder(WebDataBinder binder) {
 		binder.addValidators(passwordsValidator);
 	}
 	
@@ -124,6 +130,8 @@ public class AdminController {
 		if(employee.getJoining() == null) {
 			employee.setJoining(LocalDateTime.now(ZoneId.of("Japan")).toLocalDate());
 		}
+		
+		
 		
 		// 確認用のAuth権限
 		model.addAttribute("adminAuth", Auth.ADMIN);
@@ -227,31 +235,9 @@ public class AdminController {
 				= StringUtils.repeat("*", employee.getPassword().length());
 		model.addAttribute("hiddenPassword", hiddenPassword);
 		
-		
-		
 		// パスワードを暗号化して入れ直す
 		String encodedPassword = passwordEncoder.encode(passwords.getPassword());
 		employee.setPassword(encodedPassword);
-		
-		
-		// 従業員IDがない場合は生成
-		// IDはアルファベッド1文字+番号6桁
-		if(employee.getEmpId() == null || employee.getEmpId().isBlank()) {
-			
-			String empId;
-			boolean isAdmin = (employee.getAuth() == Auth.ADMIN);
-			long num = employeeRepository.count();
-			do {
-				empId = String.format("%s%06d", 
-						(isAdmin ? "A" : "E"), num);
-				num++;
-				if(num >= 1_000_000) num = 0; // 7桁になったら0に戻す
-			}while(employeeRepository.findByEmpId(empId).isPresent());
-			
-			employee.setEmpId(empId);
-			model.addAttribute("msg", "従業員IDを発行しました（ID:" + empId + "）");
-			
-		}
 		
 		// DBに登録
 		employeeRepository.save(employee);

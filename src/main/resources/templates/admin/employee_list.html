@@ -64,8 +64,6 @@
 								
 								<td class="p-1">
 									<!-- deleteにはidを使用する（empId重複時の対策として） -->
-									<form method="post" th:id="*{'delete' + id}"
-											th:action="@{/admin/delete_employee(id = *{id})}"></form>
 									<button class="btn btn-danger w-100" style="max-width: 150px;"
 											th:onclick="|deleteEmployee('__*{id}__')|">削除</button>
 								</td>

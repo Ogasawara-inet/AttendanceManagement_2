@@ -15,7 +15,7 @@ function deleteEmployee(id){
 		form.action = "/admin/delete_employee";
 		
 		// form内のinputの作成
-		var input = document.createElement('input');
+		var input = document.createElement("input");
 		input.type = "hidden";
 		input.name = "id";
 		input.value = id;

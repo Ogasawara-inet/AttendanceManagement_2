@@ -27,48 +27,59 @@
 					style="font-size: min(150px, 20vw)"></div>
 		</div>
 		
-		<form method="get">
-
-			<div class="row w-100 mx-auto mb-5 d-flex justify-content-around attendance_buttons"
-					style="max-width: 800px;">
+		<form class="row w-100 mx-auto mb-3 d-flex justify-content-around attendance_buttons"
+					method="get" style="max-width: 800px;">
 			
-				<!-- 出勤ボタン -->
-				<div class="col-md-3 col-6 mb-4 text-center">
-					<button th:if="${status == 'beforeWork'}" class="btn btn-info"
-							th:formaction="@{/start}">出勤</button>
-					<button th:unless="${status == 'beforeWork'}" class="btn btn-secondary text-dark" disabled>
-							出勤</button>
-				</div>
-				
-				<!-- 退勤ボタン -->
-				<div class="col-md-3 col-6 mb-4 text-center">
-					<button th:if="${status == 'working'}" class="btn btn-info"
-							th:formaction="@{/finish}">退勤</button>
-					<button th:unless="${status == 'working'}" class="btn btn-secondary text-dark" disabled>
-							退勤</button>
-				</div>
-				
-				<!-- 休憩ボタン -->
-				<div class="col-md-3 col-6 mb-4 text-center">
-					<button th:if="${status == 'working'}" class="btn btn-info"
-							th:formaction="@{/breakStart}">休憩</button>
-					<button th:unless="${status == 'working'}" class="btn btn-secondary text-dark" disabled>
-							休憩</button>
-				</div>
-				
-				<!-- 休憩終了ボタン -->
-				<div class="col-md-3 col-6 mb-4 text-center">
-					<button th:if="${status == 'onBreak'}" class="btn btn-info"
-							th:formaction="@{/breakFinish}">休憩終了</button>
-					<button th:unless="${status == 'onBreak'}" class="btn btn-secondary text-dark" disabled>
-							休憩終了</button>
-				</div>
-				
+			<!-- 出勤ボタン -->
+			<div class="col-md-3 col-6 mb-4 text-center">
+				<button th:if="${status == 'beforeWork'}" class="btn btn-info"
+						th:formaction="@{/start}">出勤</button>
+				<button th:unless="${status == 'beforeWork'}" class="btn btn-secondary text-dark" disabled>
+						出勤</button>
 			</div>
-				
+			
+			<!-- 退勤ボタン -->
+			<div class="col-md-3 col-6 mb-4 text-center">
+				<button th:if="${status == 'working' || status == 'afterBreak'}" class="btn btn-info"
+						th:formaction="@{/finish}">退勤</button>
+				<button th:unless="${status == 'working' || status == 'afterBreak'}" 
+						class="btn btn-secondary text-dark" disabled>退勤</button>
+			</div>
+			
+			<!-- 休憩ボタン -->
+			<div class="col-md-3 col-6 mb-4 text-center">
+				<button th:if="${status == 'working'}" class="btn btn-info"
+						th:formaction="@{/breakStart}">休憩</button>
+				<button th:unless="${status == 'working'}" class="btn btn-secondary text-dark" disabled>
+						休憩</button>
+			</div>
+			
+			<!-- 休憩終了ボタン -->
+			<div class="col-md-3 col-6 mb-4 text-center">
+				<button th:if="${status == 'onBreak'}" class="btn btn-info px-1"
+						th:formaction="@{/breakFinish}">休憩終了</button>
+				<button th:unless="${status == 'onBreak'}" class="btn btn-secondary text-dark px-1" disabled>
+						休憩終了</button>
+			</div>
+
 		</form>
 		
+		<div class="row">
+			<!-- キャンセルボタン -->
+			<div class="col text-center mb-5">
+				<button th:unless="${status == 'beforeWork'}" class="btn btn-danger btn-sm px-3" style="font-size: 20px;" 
+						th:onclick="|cancelStamping('__${status}__')|">打刻をキャンセル</button>
+				<button th:if="${status == 'beforeWork'}" class="btn btn-secondary text-dark btn-sm px-3" 
+						style="font-size: 20px;" disabled>打刻をキャンセル</button>
+			</div>
+		</div>
+		
+		
+		<!-- 打刻キャンセルに使用するCSRFトークン -->
+<!--		<input type="hidden" id="csrfToken" th:name="${_csrf.parameterName}" -->
+<!--				th:value="${_csrf.token}">-->
 		<script src="/js/Clock.js"></script>
+		<script src="/js/CancelStamping.js"></script>
 			
 	</main>
 

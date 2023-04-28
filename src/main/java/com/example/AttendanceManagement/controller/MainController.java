@@ -18,6 +18,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import com.example.AttendanceManagement.entity.Employee;
 import com.example.AttendanceManagement.entity.Passwords;
 import com.example.AttendanceManagement.repository.EmployeeRepository;
+import com.example.AttendanceManagement.validator.EmployeeValidator;
 import com.example.AttendanceManagement.validator.PasswordsValidator;
 
 import jakarta.servlet.http.HttpServletResponse;
@@ -32,11 +33,16 @@ public class MainController {
 	private final PasswordEncoder passwordEncoder;
 	
 	// カスタムバリデーター
+	private final EmployeeValidator employeeValidator;
 	private final PasswordsValidator passwordsValidator;
 	
 	// バリデーター登録
+	@InitBinder("employee")
+	public void employeeInitBinder(WebDataBinder binder) {
+		binder.addValidators(employeeValidator);
+	}
 	@InitBinder("passwords")
-	public void initBinder(WebDataBinder binder) {
+	public void passwordsInitBinder(WebDataBinder binder) {
 		binder.addValidators(passwordsValidator);
 	}
 	

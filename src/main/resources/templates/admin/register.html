@@ -30,13 +30,23 @@
 					
 					<!-- 入力欄がないものを格納 -->
 					<input type="hidden" th:field="*{id}">
-					<input type="hidden" th:field="*{empId}">
+<!--					<input type="hidden" th:field="*{empId}">-->
 					<input type="hidden" th:field="*{auth}">
 <!--					<input type="hidden" id="auth" -->
 <!--							th:value="${user != null ? user.authorities[0] : 'NONE'}">-->
 					
 					<input type="hidden" name="status" th:value="${status}">
 					
+					<div class="mb-4">
+						<label class="form-label">
+							<span class="bg-danger text-white small rounded px-2 py-1 mr-1">
+								必須</span>
+							社員ID：
+						</label>
+						<input class="form-control" type="text" th:field="*{empId}"
+								th:errorclass="is-invalid">
+						<div class="text-danger" th:errors="*{empId}"></div>
+					</div>
 					
 					<div class="mb-4">
 						

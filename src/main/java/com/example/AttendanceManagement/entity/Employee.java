@@ -26,7 +26,7 @@ public class Employee {
 	@GeneratedValue
 	private Long id; // 通し番号
 	
-	private String empId; // 社員ID（自動設定）
+	private String empId; // 社員ID
 	
 	private Auth auth; // 権限
 

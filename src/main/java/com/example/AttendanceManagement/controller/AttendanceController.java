@@ -68,27 +68,28 @@ public class AttendanceController {
 		
 		
 		// 日付と時間を渡す
-		model.addAttribute("now", LocalDateTime.now());
+		model.addAttribute("now", LocalDateTime.now(ZoneId.of("Japan")).toLocalTime());
 		
 		// 勤怠管理表の今日の項目を取得し、今の状態を判別して渡す
 		String status = "";
-		WorkTime workTime = workTimeRepository.findByEmpIdAndWorkDate(user.getUsername(), LocalDate.now());
+		WorkTime workTime = workTimeRepository.findByEmpIdAndWorkDate(
+				user.getUsername(), 
+				LocalDateTime.now(ZoneId.of("Japan")).toLocalDate());
 		if(workTime == null || workTime.getStartTime() == null) {
 			// workTimeが存在しない、または出勤していない場合は「beforeWork」
 			status = "beforeWork";
 		} else if (workTime.getFinishTime() != null) {
 			// 退勤済みの場合は「afterWork」
 			status = "afterWork";
-		} else if (workTime.getBreakStartTime() == null || workTime.getBreakFinishTime() != null) {
-			// （出勤済みであり、）休憩していないまたは休憩が終了している場合は「working」
+		} else if (workTime.getBreakStartTime() == null) {
+			// （出勤済みであり、）休憩していない場合は「working」
 			status = "working";
 		} else if (workTime.getBreakStartTime() != null && workTime.getBreakFinishTime() == null) {
 			// 休憩しており、休憩が終了していない場合は「onBreak」
 			status = "onBreak";
-		} else {
-			// それ以外の場合は「other」
-			// 勤怠管理票の入力で正しくない状態になった場合はこの値になる
-			status = "other";
+		} else if (workTime.getBreakFinishTime() != null) {
+			// 休憩が終了している場合は「afterBreak」
+			status = "afterBreak";
 		}
 		
 		model.addAttribute("status", status);
@@ -244,6 +245,70 @@ public class AttendanceController {
 		
 		
 		redirectAttributes.addFlashAttribute("msg", "打刻しました：　休憩終了");
+		
+		return "redirect:/attendance";
+	}
+	
+	
+	
+	// 打刻をキャンセル
+	@GetMapping("/cancel_stamping")
+	public String cancel_stamping(@AuthenticationPrincipal UserDetails user,
+			@RequestParam(required=false) String status,
+			RedirectAttributes redirectAttributes,
+			Model model) {
+		
+		// 検証
+		System.out.println("cancel_start");
+		System.out.println("status : " + status);
+		
+		// 日付を取得
+		LocalDate date = LocalDateTime.now(ZoneId.of("Japan")).toLocalDate();
+		
+		
+		// 勤怠管理票を取得
+		WorkTime workTime = workTimeRepository.findByEmpIdAndWorkDate(
+				user.getUsername(), date);
+		
+		// キャンセルする項目名
+		String buttonName = "";
+		
+		// statusの値を参照し、直前に打刻された値を削除
+		switch(status) {
+			
+			case "working": // 勤務中
+				workTime.setStartTime(null);
+				buttonName = "出勤";
+				break;
+
+			case "onBreak": // 休憩中
+				workTime.setBreakStartTime(null);
+				buttonName = "休憩";
+				break;
+				
+			case "afterBreak": // 休憩終了後
+				workTime.setBreakFinishTime(null);
+				workTime.setBreakTime(null);
+				buttonName = "休憩終了";
+				break;
+				
+			case "afterWork": // 退勤後
+				workTime.setFinishTime(null);
+				workTime.setWorkingTime(null);
+				buttonName = "退勤";
+				break;
+				
+		}
+		
+		workTimeRepository.save(workTime);
+		
+		
+		
+		// 月次報告があれば未提出にする
+		clearReport(user.getUsername(), date);
+		
+		// メッセージを表示
+		redirectAttributes.addFlashAttribute("warn", "打刻をキャンセルしました：　" + buttonName);
 		
 		return "redirect:/attendance";
 	}
