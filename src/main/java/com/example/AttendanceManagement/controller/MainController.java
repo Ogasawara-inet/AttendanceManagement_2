@@ -6,16 +6,19 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
-import org.springframework.validation.FieldError;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.example.AttendanceManagement.entity.Employee;
+import com.example.AttendanceManagement.entity.Passwords;
 import com.example.AttendanceManagement.repository.EmployeeRepository;
+import com.example.AttendanceManagement.validator.PasswordsValidator;
 
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -28,12 +31,21 @@ public class MainController {
 	
 	private final PasswordEncoder passwordEncoder;
 	
+	// カスタムバリデーター
+	private final PasswordsValidator passwordsValidator;
+	
+	// バリデーター登録
+	@InitBinder("passwords")
+	public void initBinder(WebDataBinder binder) {
+		binder.addValidators(passwordsValidator);
+	}
 	
 	
 	
 	/*
 	 * 社員IDの取得はuser.getUsername()で行う。
 	 */
+	
 	
 	
 	
@@ -116,7 +128,9 @@ public class MainController {
 	// 登録内容変更
 	@GetMapping("/revice")
 	public String revice(@AuthenticationPrincipal UserDetails user, 
-			@ModelAttribute Employee employee, Model model) {
+			@ModelAttribute Employee employee, 
+			@ModelAttribute Passwords passwords,
+			Model model) {
 		
 		model.addAttribute("user", user);
 		
@@ -124,6 +138,8 @@ public class MainController {
 		employee = employeeRepository.findByEmpId(
 				user.getUsername()).orElseThrow();
 		model.addAttribute("employee", employee);
+		
+		model.addAttribute("passwords", passwords);
 		
 		String status 
 				= (user.getAuthorities().toArray()[0].toString().equals("ADMIN")
@@ -140,28 +156,26 @@ public class MainController {
 	public String save(@AuthenticationPrincipal UserDetails user, 
 			@Validated @ModelAttribute Employee employee, 
 			BindingResult result,
-			@RequestParam(required = false) String passwordAgain,
+			@Validated @ModelAttribute Passwords passwords, 
+			BindingResult passwordsResult,
 			@RequestParam(required = false) String status,
 			RedirectAttributes redirectAttributes, Model model) {
 		
 		model.addAttribute("user", user);
 		
-		if (!(passwordAgain.equals(employee.getPassword()))) {
-			result.addError(new FieldError(
-					result.getObjectName(),
-					"password", 
-					"再入力されたパスワードが正しくありません"));
-		}
 		
-		if(result.hasErrors()) {
+		
+		// エラーが発生した場合は元の画面へ
+		if(result.hasErrors() || passwordsResult.hasErrors()) {
 			model.addAttribute("status", status);
 			model.addAttribute("employee", employee);
-			return "/admin/register";
+			return "admin/register";
 		}
 		
-		// パスワードを暗号化して入れ直す
-		String encodedPassword = passwordEncoder.encode(employee.getPassword());
-		employee.setPassword(encodedPassword);
+		
+		
+		// パスワードを暗号化して格納
+		employee.setPassword(passwordEncoder.encode(passwords.getPassword()));
 		
 		employeeRepository.save(employee);
 		

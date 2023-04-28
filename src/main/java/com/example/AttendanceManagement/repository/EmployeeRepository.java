@@ -13,11 +13,11 @@ public interface EmployeeRepository extends JpaRepository<Employee, String>{
 	// 社員IDで検索
 	public Optional<Employee> findByEmpId(String empId);
 	
-	// 苗字で検索
-	public List<Employee> findByLastNameLikeOrderByEmpId(String lastName);
+	// 苗字で検索（並び替えはControllerで行う）
+	public List<Employee> findByLastNameLike(String lastName);
 	
-	// 名前で検索
-	public List<Employee> findByFirstNameLikeOrderByEmpId(String firstName);
+	// 名前で検索（並び替えはControllerで行う）
+	public List<Employee> findByFirstNameLike(String firstName);
 	
 	
 	

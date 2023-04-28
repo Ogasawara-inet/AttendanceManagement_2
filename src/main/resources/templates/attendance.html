@@ -11,7 +11,15 @@
 	
 	<main layout:fragment="content">
 		
+		<div class="row mb-3 w-75 mx-auto">
+			<!-- メッセージ -->
+			<div th:replace="~{fragments/message :: message}"></div>
+			
+		</div>
+		
+		
 		<div class="row text-center mb-5">
+			
 			<!-- 現在時刻 -->
 			<div class="text-center w-100" th:text="${#temporals.format(now, 'yyyy年MM月dd日')}"
 					style="font-size: 2.5rem"></div>
@@ -28,28 +36,32 @@
 				<div class="col-md-3 col-6 mb-4 text-center">
 					<button th:if="${status == 'beforeWork'}" class="btn btn-info"
 							th:formaction="@{/start}">出勤</button>
-					<button th:unless="${status == 'beforeWork'}" class="btn btn-info" disabled>出勤</button>
+					<button th:unless="${status == 'beforeWork'}" class="btn btn-secondary text-dark" disabled>
+							出勤</button>
 				</div>
 				
 				<!-- 退勤ボタン -->
 				<div class="col-md-3 col-6 mb-4 text-center">
 					<button th:if="${status == 'working'}" class="btn btn-info"
 							th:formaction="@{/finish}">退勤</button>
-					<button th:unless="${status == 'working'}" class="btn btn-info" disabled>退勤</button>
+					<button th:unless="${status == 'working'}" class="btn btn-secondary text-dark" disabled>
+							退勤</button>
 				</div>
 				
 				<!-- 休憩ボタン -->
 				<div class="col-md-3 col-6 mb-4 text-center">
 					<button th:if="${status == 'working'}" class="btn btn-info"
 							th:formaction="@{/breakStart}">休憩</button>
-					<button th:unless="${status == 'working'}" class="btn btn-info" disabled>休憩</button>
+					<button th:unless="${status == 'working'}" class="btn btn-secondary text-dark" disabled>
+							休憩</button>
 				</div>
 				
 				<!-- 休憩終了ボタン -->
 				<div class="col-md-3 col-6 mb-4 text-center">
 					<button th:if="${status == 'onBreak'}" class="btn btn-info"
 							th:formaction="@{/breakFinish}">休憩終了</button>
-					<button th:unless="${status == 'onBreak'}" class="btn btn-info" disabled>休憩終了</button>
+					<button th:unless="${status == 'onBreak'}" class="btn btn-secondary text-dark" disabled>
+							休憩終了</button>
 				</div>
 				
 			</div>

@@ -31,10 +31,11 @@
 					<!-- 入力欄がないものを格納 -->
 					<input type="hidden" th:field="*{id}">
 					<input type="hidden" th:field="*{empId}">
+					<input type="hidden" th:field="*{auth}">
+<!--					<input type="hidden" id="auth" -->
+<!--							th:value="${user != null ? user.authorities[0] : 'NONE'}">-->
 					
 					<input type="hidden" name="status" th:value="${status}">
-					<input type="hidden" id="auth" 
-							th:value="${user != null ? user.authorities[0] : 'NONE'}">
 					
 					
 					<div class="mb-4">
@@ -97,11 +98,12 @@
 						<label class="form-label">
 							<span class="bg-danger text-white small rounded px-2 py-1 mr-1">
 								必須</span>
-							パスワード：
+							パスワード：<br>（※英大文字、英小文字、数字、記号を含む8文字以上）
 						</label>
-						<input class="form-control" type="password" th:field="*{password}"
+						<input class="form-control" type="password" th:field="${passwords.password}"
 								th:errorclass="is-invalid">
-						<div class="text-danger" th:errors="*{password}"></div>
+						<div class="text-danger" th:errors="${passwords.password}">
+						</div>
 					</div>
 					
 					<div class="mb-4">
@@ -110,10 +112,9 @@
 								必須</span>
 							パスワード（再入力）：
 						</label>
-						<input th:unless="*{#fields.hasErrors('password')}"
-								class="form-control" type="password" name="passwordAgain">
-						<input th:if="*{#fields.hasErrors('password')}"
-								class="form-control is-invalid" type="password" name="passwordAgain">
+						<input class="form-control" type="password" th:field="${passwords.passwordAgain}"
+								th:errorclass="is-invalid">
+<!--						<div class="text-danger" th:errors="${passwords.passwordAgain}"></div>-->
 					</div>
 					
 					<div class="mb-4">

@@ -49,6 +49,8 @@
 					<input type="hidden" th:field="*{dept}">
 					<input type="hidden" th:field="*{joining}">
 					
+					<input type="hidden" th:field="${passwords}">
+					
 					<input type="hidden" name="status" th:value="${status}">
 					<input type="hidden" id="auth" 
 							th:value="${user != null ? user.authorities[0] : 'NONE'}">

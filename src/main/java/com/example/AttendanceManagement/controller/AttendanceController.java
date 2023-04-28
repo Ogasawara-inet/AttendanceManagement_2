@@ -101,6 +101,7 @@ public class AttendanceController {
 	// 出勤
 	@GetMapping("/start")
 	public String start(@AuthenticationPrincipal UserDetails user, 
+			RedirectAttributes redirectAttributes,
 			Model model) {
 		
 		// 現在の日時を日本時間に直し、日付と時間を取得
@@ -119,10 +120,12 @@ public class AttendanceController {
 		
 		workTimeRepository.save(workTime);
 		
-		
-		
 		// 月次報告があれば未提出にする
 		clearReport(user.getUsername(), date);
+		
+		
+		
+		redirectAttributes.addFlashAttribute("msg", "打刻しました：　出勤");
 		
 		return "redirect:/attendance";
 	}
@@ -132,6 +135,7 @@ public class AttendanceController {
 	// 退勤
 	@GetMapping("/finish")
 	public String finish(@AuthenticationPrincipal UserDetails user, 
+			RedirectAttributes redirectAttributes,
 			Model model) {
 		
 		// 現在の日時を日本時間に直し、日付と時間を取得
@@ -145,12 +149,15 @@ public class AttendanceController {
 		// 退勤時は実働時間（分）を計算する
 		// ただしその前に、休憩時間が未入力ならデフォルトの値を入力する（ここでは0）
 		// 実働時間は開始時間と終了時間の差から休憩時間を引いた値
+		// もし出勤時間が未入力の場合は、実働時間も未入力にする
 		if(workTime.getBreakTime() == null) workTime.setBreakTime(defaultBreakTime);
 		
 		if(workTime.getStartTime() != null) {
 				workTime.setWorkingTime(Integer.valueOf(
 						(int)ChronoUnit.MINUTES.between(workTime.getStartTime(), time)
 								- workTime.getBreakTime()));
+		} else {
+			workTime.setWorkingTime(null);
 		}
 		
 		
@@ -162,6 +169,10 @@ public class AttendanceController {
 		// 月次報告があれば未提出にする
 		clearReport(user.getUsername(), date);
 		
+		
+		
+		redirectAttributes.addFlashAttribute("msg", "打刻しました：　退勤");
+		
 		return "redirect:/attendance";
 	}
 	
@@ -170,6 +181,7 @@ public class AttendanceController {
 	// 休憩
 	@GetMapping("/breakStart")
 	public String breakStart(@AuthenticationPrincipal UserDetails user, 
+			RedirectAttributes redirectAttributes,
 			Model model) {
 		
 		// 現在の日時を日本時間に直し、日付と時間を取得
@@ -191,6 +203,10 @@ public class AttendanceController {
 		clearReport(user.getUsername(), date);
 		
 		
+		
+		redirectAttributes.addFlashAttribute("msg", "打刻しました：　休憩");
+		
+		
 		return "redirect:/attendance";
 	}
 	
@@ -199,6 +215,7 @@ public class AttendanceController {
 	// 休憩終了
 	@GetMapping("/breakFinish")
 	public String breakFinish(@AuthenticationPrincipal UserDetails user,
+			RedirectAttributes redirectAttributes,
 			Model model) {
 		
 		// 現在の日時を日本時間に直し、日付と時間を取得
@@ -223,6 +240,10 @@ public class AttendanceController {
 		
 		// 月次報告があれば未提出にする
 		clearReport(user.getUsername(), date);
+		
+		
+		
+		redirectAttributes.addFlashAttribute("msg", "打刻しました：　休憩終了");
 		
 		return "redirect:/attendance";
 	}
@@ -312,6 +333,7 @@ public class AttendanceController {
 			
 			// 実働時間を入力
 			// 実働時間は開始時間と終了時間の差から休憩時間を引いた値
+			// 開始時間と終了時間のどちらかが未入力なら、実働時間も未入力にする
 			if(workTime.getStartTime() != null && workTime.getFinishTime() != null) {
 				
 				workTime.setWorkingTime(Integer.valueOf(
@@ -320,6 +342,8 @@ public class AttendanceController {
 						- (workTime.getBreakTime() != null 
 								? workTime.getBreakTime() : 0)));
 				
+			} else {
+				workTime.setWorkingTime(null);
 			}
 			
 			workTimeRepository.save(workTime);

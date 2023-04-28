@@ -34,6 +34,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 				employee.getPassword(),
 				AuthorityUtils.createAuthorityList(employee.getAuth().toString())
 			);
+
 		
 	}
 

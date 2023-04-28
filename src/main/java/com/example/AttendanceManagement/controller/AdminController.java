@@ -1,8 +1,11 @@
 package com.example.AttendanceManagement.controller;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -16,9 +19,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
-import org.springframework.validation.FieldError;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -28,9 +32,11 @@ import org.thymeleaf.util.StringUtils;
 
 import com.example.AttendanceManagement.entity.Employee;
 import com.example.AttendanceManagement.entity.MonthlyReport;
+import com.example.AttendanceManagement.entity.Passwords;
 import com.example.AttendanceManagement.repository.EmployeeRepository;
 import com.example.AttendanceManagement.repository.MonthlyReportRepository;
 import com.example.AttendanceManagement.util.Auth;
+import com.example.AttendanceManagement.validator.PasswordsValidator;
 
 import lombok.RequiredArgsConstructor;
 
@@ -44,10 +50,19 @@ public class AdminController {
 	
 	private final PasswordEncoder passwordEncoder;
 	
+	// カスタムバリデーター
+	private final PasswordsValidator passwordsValidator;
+	
+	// バリデーター登録
+	@InitBinder("passwords")
+	public void initBinder(WebDataBinder binder) {
+		binder.addValidators(passwordsValidator);
+	}
+	
 	
 	
 	// 従業員一覧で表示する件数
-	private final int empListSize = 20;
+	private final int empListSize = 10;
 	
 	
 	
@@ -74,6 +89,7 @@ public class AdminController {
 	@GetMapping("/register")
 	public String register(@AuthenticationPrincipal UserDetails user, 
 			@ModelAttribute Employee employee, 
+			@ModelAttribute Passwords passwords,
 			@RequestParam(required=false) String empId, 
 			@RequestParam(required=false) String status,
 			Model model) {
@@ -105,12 +121,16 @@ public class AdminController {
 		
 		// 入社日が未入力の場合、今日の日付を設定
 		if(employee == null) employee = new Employee();
-		if(employee.getJoining() == null) employee.setJoining(LocalDate.now());
+		if(employee.getJoining() == null) {
+			employee.setJoining(LocalDateTime.now(ZoneId.of("Japan")).toLocalDate());
+		}
 		
 		// 確認用のAuth権限
 		model.addAttribute("adminAuth", Auth.ADMIN);
 		
 		
+		
+		model.addAttribute("passwords", passwords);
 		
 		model.addAttribute("employee", employee);
 		
@@ -130,12 +150,13 @@ public class AdminController {
 	 */
 	@PostMapping("/register")
 	public String register_from_confirm(@AuthenticationPrincipal UserDetails user, 
-			@ModelAttribute Employee employee, 
+			@ModelAttribute Employee employee,  
+			@ModelAttribute Passwords passwords, 
 			@RequestParam(required=false) String status,
 			Model model) {
 		
 		// GetMappingと同じ処理をする
-		return register(user, employee, null, status, model);
+		return register(user, employee, passwords, null, status, model);
 		
 	}
 	
@@ -146,7 +167,8 @@ public class AdminController {
 	public String register_confirm(@AuthenticationPrincipal UserDetails user, 
 			@Validated @ModelAttribute Employee employee, 
 			BindingResult result,
-			@RequestParam(required=false) String passwordAgain,
+			@Validated @ModelAttribute Passwords passwords,
+			BindingResult passwordsResult,
 			@RequestParam(required=false) String adminCheck,
 			@RequestParam(required=false) String status,
 			Model model) {
@@ -168,21 +190,8 @@ public class AdminController {
 		
 		
 		
-		// パスワードと確認用パスワードが一致しない場合にバリデーションを追加
-		/*
-		 * Stringは参照型として扱われる場合があり、
-		 * その場合は「==」で比較した結果は正しくなくなるため
-		 * 比較にはequalsを用いる。
-		 */
-		if (!(passwordAgain.equals(employee.getPassword()))) {
-			result.addError(new FieldError(
-					result.getObjectName(),
-					"password", 
-					"再入力されたパスワードが正しくありません"));
-		}
-		
 		// 入力エラーが発生した場合は元の画面へ
-		if(result.hasErrors()) {
+		if(result.hasErrors() || passwordsResult.hasErrors()) {
 			model.addAttribute("employee", employee);
 			return "admin/register";
 		}
@@ -195,6 +204,7 @@ public class AdminController {
 		model.addAttribute("hiddenPassword", hiddenPassword);
 		
 		model.addAttribute("employee", employee);
+		model.addAttribute("passwords", passwords);
 		model.addAttribute("complete", false);
 		
 		return "admin/register_confirm";
@@ -206,6 +216,7 @@ public class AdminController {
 	@PostMapping("/save_employee")
 	public String save_employee(@AuthenticationPrincipal UserDetails user, 
 			@ModelAttribute Employee employee, 
+			@ModelAttribute Passwords passwords,
 			@RequestParam(required=false) String status, 
 			RedirectAttributes redirectAttributes, Model model) {
 		
@@ -219,7 +230,7 @@ public class AdminController {
 		
 		
 		// パスワードを暗号化して入れ直す
-		String encodedPassword = passwordEncoder.encode(employee.getPassword());
+		String encodedPassword = passwordEncoder.encode(passwords.getPassword());
 		employee.setPassword(encodedPassword);
 		
 		
@@ -253,7 +264,7 @@ public class AdminController {
 			model.addAttribute("employee", employee);
 			model.addAttribute("status", status);
 			model.addAttribute("complete", true);
-			return "/admin/register_confirm";
+			return "admin/register_confirm";
 			
 		}else {
 			
@@ -323,25 +334,28 @@ public class AdminController {
 				
 				// 1文字目で苗字と名前を検索
 				empList = employeeRepository
-						.findByLastNameLikeOrderByEmpId("%" + s + "%");
+						.findByLastNameLike("%" + s + "%");
 				empList.addAll(employeeRepository
-						.findByFirstNameLikeOrderByEmpId("%" + s + "%"));
+						.findByFirstNameLike("%" + s + "%"));
 				
 				// その中から重複要素を削除し、
 				// フルネームに検索ワードが含まれるもののみに絞る
+				// その後社員IDの昇順で並び替え
 				empList = empList.stream()
 						.distinct()
 						.filter(e -> e != null
 								&& e.getLastName().concat(e.getFirstName())
 										.contains(searchword))
+						.sorted((e1, e2) -> e1.getEmpId().compareTo(e2.getEmpId()))
 						.toList();
 				
 			}
 			
 		} else {
 
-			// キーワードが未入力なら全件表示
+			// キーワードが未入力なら全件表示し、社員IDの昇順で並び替え
 			empList = employeeRepository.findAll();
+			Collections.sort(empList, (e1, e2) -> e1.getEmpId().compareTo(e2.getEmpId()));
 			
 		}
 		
@@ -382,7 +396,7 @@ public class AdminController {
 		boolean getList = false; // 検索を実行したかどうかの判定
 		if (searchword != null) {
 			
-			// 従業員IDとして検索
+			// 社員IDとして検索
 			if (searchAll) {
 				monthlyReportList = monthlyReportRepository
 						.findByEmpIdAndSubmittedTrueOrderByIndexMonthDesc(searchword);
@@ -391,8 +405,8 @@ public class AdminController {
 						.findByEmpIdAndSubmittedTrueAndApprovalIdIsNullOrderByIndexMonth(searchword);
 			}
 			
-			// 従業員IDとして検索して見つからなかった場合、
-			// 従業員名として検索する
+			// 社員IDとして検索して見つからなかった場合、
+			// 社員名として検索する
 			if (monthlyReportList == null || monthlyReportList.size() == 0) {
 				
 				// 検索ワードの1文字目を取得
@@ -417,11 +431,11 @@ public class AdminController {
 								.contains(searchword))
 						.toList();
 				
-			
 			} else {
 				
 				// 検索ワードが空欄の場合は全件取得
 				monthlyReportList = monthlyReportRepository.findAll();
+				
 			}
 				
 			getList = true;
@@ -458,7 +472,7 @@ public class AdminController {
 		MonthlyReport report = monthlyReportRepository.findByEmpIdAndIndexMonth(empId, month).orElseThrow();
 		report.setApprovalId(employee.getEmpId());
 		report.setApprovalName(employee.getLastName() + " " + employee.getFirstName());
-		report.setApprovalDate(LocalDate.now());
+		report.setApprovalDate(LocalDateTime.now(ZoneId.of("Japan")).toLocalDate());
 		monthlyReportRepository.save(report);
 		
 		redirectAttributes.addFlashAttribute(

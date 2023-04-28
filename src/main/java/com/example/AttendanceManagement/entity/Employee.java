@@ -11,8 +11,6 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -22,9 +20,8 @@ import lombok.Setter;
 @Setter
 @Entity
 @NoArgsConstructor
-@AllArgsConstructor
 public class Employee {
-
+	
 	@Id
 	@GeneratedValue
 	private Long id; // 通し番号
@@ -49,7 +46,8 @@ public class Employee {
 	@DateTimeFormat(pattern = "yyyy-MM-dd")
 	private LocalDate birthday; // 生年月日
 	
-	@Size(min = 8)
+	// パスワードはエンコードして格納するため、
+	// 入力値の検証はエンコード前の値に対して行う
 	private String password; // パスワード
 	
 	private String tel; // 携帯電話
@@ -60,7 +58,6 @@ public class Employee {
 	
 	private String dept; // 部署名
 	
-	// 変数名がjoinだとクエリのJOINとして扱われるためエラーになる
 	@DateTimeFormat(pattern = "yyyy-MM-dd")
 	private LocalDate joining; // 入社日
 	

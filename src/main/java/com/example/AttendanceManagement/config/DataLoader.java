@@ -36,7 +36,6 @@ public class DataLoader implements ApplicationRunner {
 		// TODO 自動生成されたメソッド・スタブ
 
 		
-		
 		/*
 		 * 以下はテスト用
 		 */
