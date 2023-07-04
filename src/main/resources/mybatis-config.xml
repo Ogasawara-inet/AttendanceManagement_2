@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<configuration>
+
+	<!-- DBにenumを格納するための記述 -->
+	<typeHandlers>
+		<typeHandler handler="com.example.AttendanceManagement.handler.AuthTypeHandler"/>
+		<typeHandler handler="com.example.AttendanceManagement.handler.DivisionTypeHandler"/>
+	</typeHandlers>
+	
+</configuration>

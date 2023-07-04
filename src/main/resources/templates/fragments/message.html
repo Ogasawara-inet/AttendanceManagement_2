@@ -14,13 +14,17 @@
 		<!-- メッセージ表示エリア -->
 			
 		<div th:if="${msg}">
-			<div class="alert alert-info mx-auto" th:text="${msg}"
-					style="max-width: 800px;"></div>
+			<div class="alert alert-info mx-auto d-flex" style="max-width: 800px;">
+				<div class="bi bi-info-circle h2 my-auto mr-3"></div>
+				<span th:text="${msg}" class="my-auto"></span>
+			</div>
 		</div>
 		
 		<div th:if="${warn}">
-			<div class="alert alert-danger mx-auto" th:text="${warn}"
-					style="max-width: 800px;"></div>
+			<div class="alert alert-danger mx-auto d-flex" style="max-width: 800px;">
+				<div class="bi bi-exclamation-triangle-fill h2 my-auto mr-3"></div>
+				<span th:text="${warn}" class="my-auto"></span>
+			</div>
 		</div>
 		
 	</div>

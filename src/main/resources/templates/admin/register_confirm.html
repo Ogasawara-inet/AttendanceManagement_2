@@ -38,9 +38,14 @@
 					<input type="hidden" th:field="*{empId}">
 					<input type="hidden" th:field="*{auth}">
 					<input type="hidden" th:field="*{lastName}">
+					<input type="hidden" th:field="*{middleName}">
 					<input type="hidden" th:field="*{firstName}">
+<!--					<input type="hidden" th:field="*{nameReverseOrder}">-->
+					<input type="hidden" th:field="*{fullName}">
 					<input type="hidden" th:field="*{lastNameKana}">
+					<input type="hidden" th:field="*{middleNameKana}">
 					<input type="hidden" th:field="*{firstNameKana}">
+					<input type="hidden" th:field="*{fullNameKana}">
 					<input type="hidden" th:field="*{birthday}">
 					<input type="hidden" th:field="*{password}">
 					<input type="hidden" th:field="*{tel}">
@@ -66,12 +71,12 @@
 						
 						<tr>
 							<td>名前</td>
-							<td th:text="*{lastName + ' ' + firstName}"></td>
+							<td th:text="*{fullName}"></td>
 						</tr>
 						
 						<tr>
 							<td>名前（フリガナ）</td>
-							<td th:text="*{lastNameKana + ' ' + firstNameKana}"></td>
+							<td th:text="*{fullNameKana}"></td>
 						</tr>
 						
 						<tr>

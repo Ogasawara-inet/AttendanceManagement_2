@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+        
+<mapper namespace="com.example.AttendanceManagement.repository.EmployeeMapper">
+	
+	<select id="find" resultType="com.example.AttendanceManagement.entity.Employee">
+		select * from employee where emp_id = #{empId}
+	</select>
+	
+	<select id="findById" resultType="com.example.AttendanceManagement.entity.Employee">
+		select * from employee where id = #{id}
+	</select>
+	
+	<select id="findAll" resultType="com.example.AttendanceManagement.entity.Employee">
+		select * from employee
+	</select>
+	
+	<select id="search" resultType="com.example.AttendanceManagement.entity.Employee">
+		select * from employee 
+		where id = 
+			(select id from
+				(select id, replace(full_name, ' ', '') as name,
+				replace(full_name_kana, ' ', '') as name_kana
+				from employee) as foo
+			where name like concat('%', #{searchword}, '%')
+			or name_kana like concat('%', #{searchword}, '%'))
+	</select>
+	
+<!--	<insert id="insert">-->
+<!--		insert into employee-->
+<!--		(emp_id, auth, last_name, first_name,-->
+<!--		last_name_kana, first_name_kana, birthday,-->
+<!--		password, tel, email, location, dept, joining)-->
+<!--		values-->
+<!--		(#{empId}, -->
+<!--		#{auth}, -->
+<!--		#{lastName}, -->
+<!--		#{firstName}, -->
+<!--		#{lastNameKana}, -->
+<!--		#{firstNameKana}, -->
+<!--		#{birthday}, -->
+<!--		#{password}, -->
+<!--		#{tel}, -->
+<!--		#{email}, -->
+<!--		#{location}, -->
+<!--		#{dept},-->
+<!--		#{joining})-->
+<!--		where not exists -->
+<!--		(select 1 from employee where emp_id = #{empId})-->
+<!--	</insert>-->
+	
+<!--	<update id="update">-->
+<!--		update employee set-->
+<!--		emp_id = #{empId}, -->
+<!--		auth = #{auth}, -->
+<!--		last_name = #{lastName}, -->
+<!--		first_name = #{firstName}, -->
+<!--		last_name_kana = #{lastNameKana}, -->
+<!--		first_name_kana = #{firstNameKana}, -->
+<!--		birthday = #{birthday, jdbcType=DATE}, -->
+<!--		password = #{password, jdbcType=VARCHAR}, -->
+<!--		tel = #{tel, jdbcType=VARCHAR}, -->
+<!--		email = #{email, jdbcType=VARCHAR}, -->
+<!--		location = #{location, jdbcType=VARCHAR}, -->
+<!--		dept = #{dept, jdbcType=VARCHAR},-->
+<!--		joining = #{joining, jdbcType=DATE}-->
+<!--		where empId = #{empId}-->
+<!--	</update>-->
+	
+	<insert id="upsert">
+		insert into employee
+		(emp_id, auth, last_name, middle_name, 
+		first_name, full_name, 
+		last_name_kana, middle_name_kana, 
+		first_name_kana, full_name_kana, birthday,
+		password, tel, email, location, dept, joining)
+		values
+		(#{empId}, #{auth}, #{lastName}, #{middleName}, 
+		#{firstName}, #{fullName}, 
+		#{lastNameKana}, #{middleNameKana}, 
+		#{firstNameKana}, #{fullNameKana}, 
+		#{birthday}, #{password}, #{tel}, #{email}, 
+		#{location}, #{dept}, #{joining})
+		on conflict(emp_id)
+		do update set
+		emp_id = #{empId}, 
+		auth = #{auth}, 
+		last_name = #{lastName}, 
+		middle_name = #{middleName}, 
+		first_name = #{firstName}, 
+		full_name = #{fullName}, 
+		last_name_kana = #{lastNameKana}, 
+		middle_name_kana = #{middleNameKana}, 
+		first_name_kana = #{firstNameKana}, 
+		full_name_kana = #{fullNameKana}, 
+		birthday = #{birthday}, 
+		password = #{password}, 
+		tel = #{tel}, 
+		email = #{email}, 
+		location = #{location}, 
+		dept = #{dept},
+		joining = #{joining}
+	</insert>
+	
+	<delete id="delete">
+		delete from employee where emp_id = #{empId}
+	</delete>
+	
+	<delete id="deleteById">
+		delete from employee where id = #{id}
+	</delete>
+	
+</mapper>
+

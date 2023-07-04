@@ -1,6 +1,6 @@
 plugins {
 	id 'java'
-	id 'org.springframework.boot' version '3.0.5'
+	id 'org.springframework.boot' version '3.0.6'
 	id 'io.spring.dependency-management' version '1.1.0'
 }
 
@@ -35,9 +35,13 @@ dependencies {
 	implementation 'nz.net.ultraq.thymeleaf:thymeleaf-layout-dialect'
 	
 	// bootstrap
-	implementation 'org.webjars:jquery:3.5.0'
-	implementation 'org.webjars:bootstrap:4.4.1-1'
-	implementation 'org.webjars.npm:bootstrap-icons:1.10.3'
+//	implementation 'org.webjars:jquery:3.5.0'
+//	implementation 'org.webjars:bootstrap:4.4.1-1'
+//	implementation 'org.webjars.npm:bootstrap-icons:1.10.3'
+	
+	// mybatis
+	implementation 'org.mybatis.spring.boot:mybatis-spring-boot-starter:3.0.1'
+	
 }
 
 tasks.named('test') {

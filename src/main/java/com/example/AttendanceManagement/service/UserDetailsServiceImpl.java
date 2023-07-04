@@ -8,7 +8,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import com.example.AttendanceManagement.entity.Employee;
-import com.example.AttendanceManagement.repository.EmployeeRepository;
+import com.example.AttendanceManagement.repository.EmployeeMapper;
 
 import lombok.RequiredArgsConstructor;
 
@@ -16,7 +16,8 @@ import lombok.RequiredArgsConstructor;
 @Service
 public class UserDetailsServiceImpl implements UserDetailsService {
 
-	private final EmployeeRepository employeeRepository;
+//	private final EmployeeRepository employeeRepository;
+	private final EmployeeMapper employeeMapper;
 	
 	
 	
@@ -25,7 +26,9 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 		// TODO 自動生成されたメソッド・スタブ
 		
 		Employee employee 
-				= employeeRepository.findByEmpId(empId)
+//				= employeeRepository.findByEmpId(empId)
+				= employeeMapper.find(empId)
+				
 						.orElseThrow(() -> new UsernameNotFoundException(
 								empId + " is not found"));
 		
@@ -34,7 +37,6 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 				employee.getPassword(),
 				AuthorityUtils.createAuthorityList(employee.getAuth().toString())
 			);
-
 		
 	}
 

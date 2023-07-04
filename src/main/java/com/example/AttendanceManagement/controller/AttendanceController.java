@@ -33,9 +33,9 @@ import com.example.AttendanceManagement.dto.WorkTimeCalender;
 import com.example.AttendanceManagement.entity.Employee;
 import com.example.AttendanceManagement.entity.MonthlyReport;
 import com.example.AttendanceManagement.entity.WorkTime;
-import com.example.AttendanceManagement.repository.EmployeeRepository;
-import com.example.AttendanceManagement.repository.MonthlyReportRepository;
-import com.example.AttendanceManagement.repository.WorkTimeRepository;
+import com.example.AttendanceManagement.repository.EmployeeMapper;
+import com.example.AttendanceManagement.repository.MonthlyReportMapper;
+import com.example.AttendanceManagement.repository.WorkTimeMapper;
 import com.example.AttendanceManagement.util.Division;
 
 import lombok.RequiredArgsConstructor;
@@ -49,9 +49,9 @@ public class AttendanceController {
 	 */
 	
 	
-	private final WorkTimeRepository workTimeRepository;
-	private final EmployeeRepository employeeRepository;
-	private final MonthlyReportRepository monthlyReportRepository;
+	private final WorkTimeMapper workTimeMapper;
+	private final EmployeeMapper employeeMapper;
+	private final MonthlyReportMapper monthlyReportMapper;
 	
 	// 休憩時間のデフォルト値
 	private final Integer defaultBreakTime = 0;
@@ -72,7 +72,7 @@ public class AttendanceController {
 		
 		// 勤怠管理表の今日の項目を取得し、今の状態を判別して渡す
 		String status = "";
-		WorkTime workTime = workTimeRepository.findByEmpIdAndWorkDate(
+		WorkTime workTime = workTimeMapper.find(
 				user.getUsername(), 
 				LocalDateTime.now(ZoneId.of("Japan")).toLocalDate());
 		if(workTime == null || workTime.getStartTime() == null) {
@@ -110,7 +110,7 @@ public class AttendanceController {
 		LocalDate date = dateTime.toLocalDate();
 		LocalTime time = dateTime.toLocalTime();
 		
-		WorkTime workTime = workTimeRepository.findByEmpIdAndWorkDate(user.getUsername(), date);
+		WorkTime workTime = workTimeMapper.find(user.getUsername(), date);
 		if (workTime == null) {
 			// データがない場合は新規に作成（社員IDと今日の日付を指定する）
 			workTime = new WorkTime();
@@ -119,7 +119,7 @@ public class AttendanceController {
 		}
 		workTime.setStartTime(time);
 		
-		workTimeRepository.save(workTime);
+		workTimeMapper.upsert(workTime);
 		
 		// 月次報告があれば未提出にする
 		clearReport(user.getUsername(), date);
@@ -144,7 +144,7 @@ public class AttendanceController {
 		LocalDate date = dateTime.toLocalDate();
 		LocalTime time = dateTime.toLocalTime();
 		
-		WorkTime workTime = workTimeRepository.findByEmpIdAndWorkDate(user.getUsername(), date);
+		WorkTime workTime = workTimeMapper.find(user.getUsername(), date);
 		workTime.setFinishTime(time);
 		
 		// 退勤時は実働時間（分）を計算する
@@ -163,7 +163,7 @@ public class AttendanceController {
 		
 		
 		
-		workTimeRepository.save(workTime);
+		workTimeMapper.upsert(workTime);
 		
 		
 		
@@ -190,13 +190,13 @@ public class AttendanceController {
 		LocalDate date = dateTime.toLocalDate();
 		LocalTime time = dateTime.toLocalTime();
 		
-		WorkTime workTime = workTimeRepository.findByEmpIdAndWorkDate(user.getUsername(), date);
+		WorkTime workTime = workTimeMapper.find(user.getUsername(), date);
 		workTime.setBreakStartTime(time);
 		
 		// 2回目以降の休憩の場合を考え、休憩終了時間をnullにする
 		workTime.setBreakFinishTime(null);
 		
-		workTimeRepository.save(workTime);
+		workTimeMapper.upsert(workTime);
 		
 		
 		
@@ -224,7 +224,7 @@ public class AttendanceController {
 		LocalDate date = dateTime.toLocalDate();
 		LocalTime time = dateTime.toLocalTime();
 		
-		WorkTime workTime = workTimeRepository.findByEmpIdAndWorkDate(user.getUsername(), date);
+		WorkTime workTime = workTimeMapper.find(user.getUsername(), date);
 		LocalTime breakFinishTime = time;
 		workTime.setBreakFinishTime(breakFinishTime);
 		
@@ -235,7 +235,7 @@ public class AttendanceController {
 				(int)ChronoUnit.MINUTES.between(workTime.getBreakStartTime(), breakFinishTime))
 						+ breakTimeSum);
 		
-		workTimeRepository.save(workTime);
+		workTimeMapper.upsert(workTime);
 		
 		
 		
@@ -267,8 +267,7 @@ public class AttendanceController {
 		
 		
 		// 勤怠管理票を取得
-		WorkTime workTime = workTimeRepository.findByEmpIdAndWorkDate(
-				user.getUsername(), date);
+		WorkTime workTime = workTimeMapper.find(user.getUsername(), date);
 		
 		// キャンセルする項目名
 		String buttonName = "";
@@ -300,7 +299,7 @@ public class AttendanceController {
 				
 		}
 		
-		workTimeRepository.save(workTime);
+		workTimeMapper.upsert(workTime);
 		
 		
 		
@@ -329,7 +328,7 @@ public class AttendanceController {
 		
 		// ユーザ情報を取得して渡す
 		Employee employee 
-				= employeeRepository.findByEmpId(user.getUsername())
+				= employeeMapper.find(user.getUsername())
 						.orElseThrow();
 		model.addAttribute("employee", employee);
 		
@@ -355,7 +354,7 @@ public class AttendanceController {
 		
 		// ユーザ情報を取得して渡す
 		Employee employee 
-				= employeeRepository.findByEmpId(user.getUsername())
+				= employeeMapper.find(user.getUsername())
 						.orElseThrow();
 		model.addAttribute("employee", employee);
 		
@@ -411,7 +410,7 @@ public class AttendanceController {
 				workTime.setWorkingTime(null);
 			}
 			
-			workTimeRepository.save(workTime);
+			workTimeMapper.upsert(workTime);
 			
 		}
 		
@@ -423,15 +422,14 @@ public class AttendanceController {
 		
 		// 月次報告があれば削除する
 		// その後locationとdeptを設定（未承認で）
-		monthlyReportRepository.deleteByEmpIdAndIndexMonth(
-				user.getUsername(), month);
+		monthlyReportMapper.delete(user.getUsername(), month);
 		
 		MonthlyReport report = new MonthlyReport(
 				user.getUsername(), null, month);
 		report.setLocation(location);
 		report.setDept(dept);
 		
-		monthlyReportRepository.save(report);
+		monthlyReportMapper.insert(report);
 		
 		
 		
@@ -450,19 +448,19 @@ public class AttendanceController {
 			Model model){
 		
 		model.addAttribute("user", user);
-
+		
 		
 		
 		// 月次報告を提出済みの月のリスト
 		List<LocalDate> approvalList = 
-				monthlyReportRepository.findByEmpIdAndSubmittedTrueOrderByIndexMonthDesc(user.getUsername())
+				monthlyReportMapper.findByEmpId(user.getUsername())
 				.stream()
 				.map(mr -> mr.getIndexMonth().withDayOfMonth(1))
 				.toList();
 		
 		// 勤怠管理表が存在する月の一覧をリストにする（月次報告を提出済みの月は除く）
 		List<LocalDate> monthList = 
-				workTimeRepository.findByEmpId(user.getUsername()).stream()
+				workTimeMapper.findAll(user.getUsername()).stream()
 				.filter(wt -> wt.getWorkDate() != null)
 				.map(wt -> wt.getWorkDate().withDayOfMonth(1)).distinct()
 				.filter(wt -> !(approvalList.contains(wt)))
@@ -485,7 +483,7 @@ public class AttendanceController {
 		// statusを設定
 		model.addAttribute("status", "report");
 		
-		Employee employee = employeeRepository.findByEmpId(user.getUsername()).orElseThrow();
+		Employee employee = employeeMapper.find(user.getUsername()).orElseThrow();
 		
 		// 勤怠管理表を表示
 		makeRecord(employee, month, model);
@@ -502,12 +500,12 @@ public class AttendanceController {
 			RedirectAttributes redirectAttributes){
 		
 		Optional<MonthlyReport> reportOpt = 
-				monthlyReportRepository.findByEmpIdAndIndexMonth(user.getUsername(), month);
+				monthlyReportMapper.find(user.getUsername(), month);
 
 		// 月次報告があればそれを取得し、なければ新規作成する
 		MonthlyReport report;
 		Employee employee = 
-				employeeRepository.findByEmpId(user.getUsername()).orElseThrow();
+				employeeMapper.find(user.getUsername()).orElseThrow();
 		if(reportOpt.isEmpty()) {
 			report = new MonthlyReport(
 							user.getUsername(),					
@@ -519,7 +517,7 @@ public class AttendanceController {
 		
 		// 名前を設定する。その後勤務先と部署が設定されていなければ
 		// 自分の現在の勤務先と部署を入力する。
-		report.setName(employee.getLastName() + " " + employee.getFirstName());
+		report.setName(employee.getFullName());
 		if(report.getLocation() == null) report.setLocation(employee.getLocation());
 		if(report.getDept() == null) report.setDept(employee.getDept());
 		
@@ -527,7 +525,12 @@ public class AttendanceController {
 		
 		// submittedをtrueにして提出
 		report.setSubmitted(true);
-		monthlyReportRepository.save(report);
+//		if(reportOpt.isEmpty()) {
+//			monthlyReportMapper.insert(report);
+//		} else {
+//			monthlyReportMapper.update(report);
+//		}
+		monthlyReportMapper.upsert(report);
 		
 		
 		
@@ -548,7 +551,7 @@ public class AttendanceController {
 		
 		// 月次報告が承認済みかどうか確認し、その結果を渡す
 		Optional<MonthlyReport> reportOpt 
-				= monthlyReportRepository.findByEmpIdAndIndexMonth(empId, month);
+				= monthlyReportMapper.find(empId, month);
 		if(reportOpt.isPresent() && reportOpt.get().getApprovalId() != null) {
 			model.addAttribute("status", "approved");
 		} else {
@@ -557,7 +560,7 @@ public class AttendanceController {
 		
 		
 		
-		Employee employee = employeeRepository.findByEmpId(empId).orElseThrow();
+		Employee employee = employeeMapper.find(empId).orElseThrow();
 		
 		// 勤怠管理表を表示
 		makeRecord(employee, month, model);
@@ -578,30 +581,33 @@ public class AttendanceController {
 	// 勤務先と部署はそのまま残す
 	private void clearReport(String empId, LocalDate date) {
 		
-		// 月次報告を取得
-		Optional<MonthlyReport> reportOpt
-				= monthlyReportRepository.findByEmpIdAndIndexMonth(
-						empId, date.withDayOfMonth(1));
+		monthlyReportMapper.cancelSubmit(empId, date);
 		
-		// 月次報告が存在するなら未提出状態にする
-		if(reportOpt.isPresent()) {
-			
-			MonthlyReport report = reportOpt.get();
-			
-			// 値を「未提出」に変更
-			report.setSubmitted(false);
-			
-			// 承認済みの場合、承認に関する値を削除
-			if(report.getApprovalId() != null) {
-				report.setApprovalId(null);
-				report.setApprovalName(null);
-				report.setApprovalDate(null);
-			}
-			
-			// 変更を保存
-			monthlyReportRepository.save(report);
-			
-		}
+		
+//		// 月次報告を取得
+//		Optional<MonthlyReport> reportOpt
+//				= monthlyReportMapper.findByEmpIdAndIndexMonth(
+//						empId, date.withDayOfMonth(1));
+//		
+//		// 月次報告が存在するなら未提出状態にする
+//		if(reportOpt.isPresent()) {
+//			
+//			MonthlyReport report = reportOpt.get();
+//			
+//			// 値を「未提出」に変更
+//			report.setSubmitted(false);
+//			
+//			// 承認済みの場合、承認に関する値を削除
+//			if(report.getApprovalId() != null) {
+//				report.setApprovalId(null);
+//				report.setApprovalName(null);
+//				report.setApprovalDate(null);
+//			}
+//			
+//			// 変更を保存
+//			monthlyReportMapper.save(report);
+//			
+//		}
 		
 		
 	}
@@ -651,8 +657,7 @@ public class AttendanceController {
 		// 勤怠管理表に対応する月次報告の状態：reportStatus
 		// 未提出ならnull、提出済みなら「submitted」、承認済みなら「approved」
 		Optional<MonthlyReport> reportOpt = 
-				monthlyReportRepository.findByEmpIdAndIndexMonth(
-						employee.getEmpId(), start);
+				monthlyReportMapper.find(employee.getEmpId(), start);
 		
 		MonthlyReport report = null;
 		String reportStatus = null;
@@ -722,10 +727,12 @@ public class AttendanceController {
 		
 		// 指定された期間の出勤記録をMapとして取得
 		Map<LocalDate, WorkTime> workTimeMap
-				= workTimeRepository.findByEmpIdAndWorkDateBetween(employee.getEmpId(), start, end)
+				= workTimeMapper.findByPeriod(employee.getEmpId(), start, end)
 						.stream().collect(Collectors.<WorkTime, LocalDate, WorkTime>toMap(
 								wt -> wt.getWorkDate(),
 								wt -> wt));
+		
+		
 		
 		// workTimeの一覧を作成（出勤していない日は日付のみ）
 		List<WorkTime> workTimeList = new ArrayList<>();
@@ -761,13 +768,13 @@ public class AttendanceController {
 		Map<String, Integer> sum = new LinkedHashMap<>();
 		
 		// 出勤日数
-		sum.put("出勤日数", workTimeRepository.countByEmpIdAndWorkingTimeGreaterThanEqualAndWorkDateBetween(
-				employee.getEmpId(), 0, start, end));
+		sum.put("出勤日数", workTimeMapper.countWorkingDays(
+				employee.getEmpId(), start, end));
 		
 		// 休暇日数
 		for (Division div : Division.values()) {
-			Integer count = workTimeRepository
-					.countByEmpIdAndDivisionAndWorkDateBetween(employee.getEmpId(), div, start, end);
+			Integer count = workTimeMapper
+					.countDivision(employee.getEmpId(), div, start, end);
 			sum.put(div.toString(), count);
 		}
 		model.addAttribute("sum", sum);

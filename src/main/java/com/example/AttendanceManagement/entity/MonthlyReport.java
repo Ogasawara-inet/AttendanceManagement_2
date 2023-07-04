@@ -2,7 +2,6 @@ package com.example.AttendanceManagement.entity;
 
 import java.time.LocalDate;
 
-import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import lombok.Getter;
@@ -11,7 +10,6 @@ import lombok.Setter;
 
 @Getter
 @Setter
-@Entity
 @NoArgsConstructor
 // 勤怠管理表の一覧と、それが承認されているかを示すエンティティ
 public class MonthlyReport {

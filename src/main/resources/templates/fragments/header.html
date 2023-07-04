@@ -40,8 +40,10 @@
 					<!-- ログアウト時にセッションを破棄するためCSRFトークンを取得 -->
 					<input type="hidden" id="csrfToken" th:name="${_csrf.parameterName}"
 							th:value="${_csrf.token}">
-					<a href="javascript:logout.submit()" 
-							class="w-100">ログアウト</a>
+					<a href="javascript:logout.submit()" class="w-100">
+						<i class="bi bi-box-arrow-right"></i>
+						ログアウト
+					</a>
 				</form>
 			</div>
 		</div>

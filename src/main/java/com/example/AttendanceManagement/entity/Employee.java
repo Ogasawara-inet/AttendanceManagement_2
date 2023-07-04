@@ -6,7 +6,6 @@ import org.springframework.format.annotation.DateTimeFormat;
 
 import com.example.AttendanceManagement.util.Auth;
 
-import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.validation.constraints.NotBlank;
@@ -18,7 +17,7 @@ import lombok.Setter;
 //@Table(name="site_user", schema="public")
 @Getter
 @Setter
-@Entity
+//@Entity
 @NoArgsConstructor
 public class Employee {
 	
@@ -32,16 +31,30 @@ public class Employee {
 
 	@NotBlank
 	private String lastName; // 苗字
+	
+	private String middleName; // ミドルネーム
 
 	@NotBlank
 	private String firstName; // 名前
-
+	
+//	private boolean nameReverseOrder; // trueなら名→姓の順にする
+	
+	// フルネーム
+	// ミドルネームや姓名順などがありフルネームの生成が
+	// 複雑になったので追加。
+	// lastName, middleName, firstNameから自動生成する。
+	private String fullName;
+	
 	@NotBlank
 	private String lastNameKana; // 苗字フリガナ
 
+	private String middleNameKana; // ミドルネームフリガナ
+	
 	@NotBlank
 	private String firstNameKana; // 名前フリガナ
-
+	
+	private String fullNameKana; // フルネームフリガナ
+	
 	@NotNull
 	@DateTimeFormat(pattern = "yyyy-MM-dd")
 	private LocalDate birthday; // 生年月日

@@ -5,7 +5,6 @@ import java.time.LocalTime;
 
 import com.example.AttendanceManagement.util.Division;
 
-import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import lombok.AllArgsConstructor;
@@ -15,7 +14,6 @@ import lombok.Setter;
 
 @Getter
 @Setter
-@Entity
 @NoArgsConstructor
 @AllArgsConstructor
 public class WorkTime{

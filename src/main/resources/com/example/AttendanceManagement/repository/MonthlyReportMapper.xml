@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.AttendanceManagement.repository.MonthlyReportMapper">
+
+	<insert id="insert">
+		insert into monthly_report
+		(submitted, emp_id, name,
+		index_month, location, dept,
+		approval_id, approval_name, approval_date)
+		select
+		#{submitted},
+		#{empId},
+		#{name},
+		#{indexMonth},
+		#{location},
+		#{dept},
+		#{approvalId},
+		#{approvalName},
+		#{approvalDate}
+		where not exists
+		(select 1 from monthly_report 
+		where emp_id = #{empId} and index_month = #{indexMonth})
+	</insert>
+	
+	<update id="update">
+		update monthly_report set
+		submitted = #{submitted},
+		emp_id = #{empId},
+		name = #{name},
+		index_month = #{indexMonth},
+		location = #{location},
+		dept = #{dept},
+		approval_id = #{approvalId},
+		approval_name = #{approvalName},
+		approval_date = #{approvalDate}
+		where emp_id = #{empId} and index_month = #{indexMonth}
+	</update>
+	
+	<insert id="upsert">
+		insert into monthly_report
+		(submitted, emp_id, name,
+		index_month, location, dept,
+		approval_id, approval_name, approval_date)
+		values
+		(#{submitted}, #{empId, jdbcType=VARCHAR}, #{name},
+		#{indexMonth}, #{location}, #{dept},
+		#{approvalId}, #{approvalName}, #{approvalDate})
+		on conflict(emp_id, index_month)
+		do update set
+		submitted = #{submitted},
+		emp_id = #{empId, jdbcType=VARCHAR},
+		name = #{name},
+		index_month = #{indexMonth},
+		location = #{location},
+		dept = #{dept},
+		approval_id = #{approvalId},
+		approval_name = #{approvalName},
+		approval_date = #{approvalDate}
+	</insert>
+	
+	
+	
+	<update id="submit">
+		update monthly_report set
+		submitted = true
+		where emp_id = #{empId} and index_month = #{indexMonth}
+	</update>
+	
+	<update id="cancelSubmit">
+		update monthly_report set
+		submitted = false
+		where emp_id = #{empId} and index_month = #{indexMonth}
+	</update>
+	
+	
+	
+	<select id="find" resultType="com.example.AttendanceManagement.entity.MonthlyReport">
+		select * from monthly_report
+		where emp_id = #{empId} and index_month = #{indexMonth}
+	</select>
+	
+	<select id="findAll" resultType="com.example.AttendanceManagement.entity.MonthlyReport">
+		select * from monthly_report
+		order by emp_id, index_month desc
+	</select>
+	
+	<select id="findByEmpId" resultType="com.example.AttendanceManagement.entity.MonthlyReport">
+		select * from monthly_report
+		where emp_id = #{empId} and submitted = true
+		order by index_month desc
+	</select>
+
+	<select id="findByEmpIdNotApproved" resultType="com.example.AttendanceManagement.entity.MonthlyReport">
+		select * from monthly_report
+		where emp_id = #{empId} and submitted = true
+		and approval_id is null
+		order by index_month desc
+	</select>
+
+	<select id="findByName" resultType="com.example.AttendanceManagement.entity.MonthlyReport">
+		select * from monthly_report
+		where replace(name, ' ', '') like concat('%', #{name}, '%')
+		and submitted = true
+		order by index_month desc
+	</select>
+
+	<select id="findByNameNotApproved" resultType="com.example.AttendanceManagement.entity.MonthlyReport">
+		select * from monthly_report
+		where replace(name, ' ', '') like concat('%', #{name}, '%')
+		and submitted = true
+		and approval_id is null
+		order by index_month desc
+	</select>
+	
+	
+	
+	<delete id="delete">
+		delete from monthly_report
+		where emp_id = #{empId} and index_month = #{indexMonth}
+	</delete>
+
+</mapper>
+
+

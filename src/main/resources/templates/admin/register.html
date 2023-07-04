@@ -32,8 +32,6 @@
 					<input type="hidden" th:field="*{id}">
 <!--					<input type="hidden" th:field="*{empId}">-->
 					<input type="hidden" th:field="*{auth}">
-<!--					<input type="hidden" id="auth" -->
-<!--							th:value="${user != null ? user.authorities[0] : 'NONE'}">-->
 					
 					<input type="hidden" name="status" th:value="${status}">
 					
@@ -56,18 +54,52 @@
 							名前
 						</label>
 						
-						<div class="d-flex">
-							<label class="form-label my-auto">姓：</label>
-							<input class="form-control" type="text" 
-									th:field="*{lastName}" placeholder="例：山田"
-									th:errorclass="is-invalid">
-							<label class="form-label my-auto ml-3">名：</label>
-							<input class="form-control" type="text" 
-									th:field="*{firstName}" placeholder="例：太郎"
-									th:errorclass="is-invalid">
+						<div class="d-flex justify-content-between" id="nameForm"
+								style="gap:5px">
+							<div class="d-flex flex-fill">
+								<label class="form-label my-auto">姓：</label>
+								<input class="form-control" type="text" 
+										th:field="*{lastName}" placeholder="例：山田"
+										th:errorclass="is-invalid">
+							</div>
+							<div class="d-flex" style="min-width: 5px;">
+								<label class="form-label my-auto" 
+										id="middleNameLabel" style="display:none; min-width:120px">
+										ミドルネーム：</label>
+								<input class="form-control" type="text" 
+										th:field="*{middleName}" placeholder="（ミドルネーム）"
+										th:errorclass="is-invalid" style="display: none;">
+							</div>
+							<div class="d-flex flex-fill">
+								<label class="form-label my-auto">名：</label>
+								<input class="form-control" type="text" 
+										th:field="*{firstName}" placeholder="例：太郎"
+										th:errorclass="is-invalid">
+							</div>
 						</div>
+						
 						<div class="text-danger" th:errors="*{lastName}"></div>
 						<div class="text-danger" th:errors="*{firstName}"></div>
+						
+						<!-- 以下の姓名の順番とミドルネームの有無は使用しないため
+							divのstyleにdisplay:noneを設定している -->
+						
+						<!-- 姓名の順番を逆にする -->
+						<div class="form-check mt-2" style="display: none;">
+							<input class="form-check-input" type="checkbox" 
+									id="nameReverseOrder" name="nameReverseOrder"
+									onClick="directionFunc()" value="checked">
+							<lavel class="form-check-label" for="nameReverseOrder">名→姓の順にする</lavel>
+						</div>
+						<input type="hidden" id="nameReverseOrderInput" th:value="${nameReverseOrder}">
+						
+						<!-- ミドルネームの有無 -->
+						<div class="form-check mt-2" style="display: none;">
+							<input class="form-check-input" type="checkbox" id="addMiddleName"
+									onClick="middleNameFunc()">
+							<lavel class="form-check-label" for="addMiddeleName">ミドルネームを追加する</lavel>
+						</div>
+						
 					</div>
 					
 					<div class="mb-4">
@@ -78,20 +110,38 @@
 							名前（フリガナ）
 						</label>
 						
-						<div class="d-flex">
-							<label class="form-label my-auto">姓：</label>
-							<input class="form-control" type="text" 
-									th:field="*{lastNameKana}" placeholder="例：ヤマダ"
-									th:errorclass="is-invalid">
-							
-							<label class="form-label my-auto ml-3">名：</label>
-							<input class="form-control" type="text" 
-									th:field="*{firstNameKana}" placeholder="例：タロウ"
-									th:errorclass="is-invalid">
+						<div class="d-flex justify-content-between" id="nameKanaForm"
+								style="gap:5px">
+							<div class="d-flex flex-fill">
+								<label class="form-label my-auto">姓：</label>
+								<input class="form-control" type="text" 
+										th:field="*{lastNameKana}" placeholder="例：ヤマダ"
+										th:errorclass="is-invalid">
+							</div>
+							<div class="d-flex" style="min-width: 5px;">
+								<label class="form-label my-auto"
+										id="middleNameKanaLabel" style="display:none; min-width:120px">
+										ミドルネーム：</label>
+								<input class="form-control" type="text" 
+										th:field="*{middleNameKana}" placeholder="（ミドルネーム）"
+										th:errorclass="is-invalid" style="display: none;">
+							</div>
+							<div class="d-flex flex-fill">
+								<label class="form-label my-auto">名：</label>
+								<input class="form-control" type="text" 
+										th:field="*{firstNameKana}" placeholder="例：タロウ"
+										th:errorclass="is-invalid">
+							</div>
 						</div>
+						
 						<div class="text-danger" th:errors="*{lastNameKana}"></div>
 						<div class="text-danger" th:errors="*{firstNameKana}"></div>
+						
 					</div>
+					
+					<!-- js -->
+					<script src="/js/ChangeForm.js"></script>
+					
 					
 					<div class="mb-4">
 						<label class="form-label">

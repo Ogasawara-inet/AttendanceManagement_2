@@ -24,9 +24,12 @@
 				<form th:action="@{/admin/employee_list(searchword = ${searchword})}">
 					<div class="input-group mb-4 w-75 mx-auto">
 						<input type="text" class="form-control" 
-								placeholder="氏名、または社員IDで検索"
+								placeholder="名前、名前カナ、社員IDで検索"
 								name="searchword" th:value="${searchword}">
-						<button class="btn btn-primary">検索</button>
+						<button class="btn btn-primary">
+							<i class="bi bi-search"></i>
+							検索
+						</button>
 					</div>
 				</form>
 				
@@ -51,7 +54,7 @@
 							<tr>
 								
 								<td th:text="*{empId}"></td>
-								<td th:text="*{lastName + ' ' + firstName}"></td>
+								<td th:text="*{fullName}"></td>
 								<td th:text="*{location}"></td>
 								<td th:text="*{dept}"></td>
 								

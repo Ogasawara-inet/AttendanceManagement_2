@@ -33,8 +33,8 @@ import org.thymeleaf.util.StringUtils;
 import com.example.AttendanceManagement.entity.Employee;
 import com.example.AttendanceManagement.entity.MonthlyReport;
 import com.example.AttendanceManagement.entity.Passwords;
-import com.example.AttendanceManagement.repository.EmployeeRepository;
-import com.example.AttendanceManagement.repository.MonthlyReportRepository;
+import com.example.AttendanceManagement.repository.EmployeeMapper;
+import com.example.AttendanceManagement.repository.MonthlyReportMapper;
 import com.example.AttendanceManagement.util.Auth;
 import com.example.AttendanceManagement.validator.EmployeeValidator;
 import com.example.AttendanceManagement.validator.PasswordsValidator;
@@ -46,8 +46,8 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping("/admin")
 public class AdminController {
 
-	private final EmployeeRepository employeeRepository;
-	private final MonthlyReportRepository monthlyReportRepository;
+	private final EmployeeMapper employeeMapper;
+	private final MonthlyReportMapper monthlyReportMapper;
 	
 	private final PasswordEncoder passwordEncoder;
 	
@@ -114,7 +114,7 @@ public class AdminController {
 			// empIdが指定されていたら「登録内容変更」
 			// 指定されていないなら「新規登録」
 			if(empId != null && !(empId.isBlank())) {
-				employee = employeeRepository.findByEmpId(empId).orElseThrow();
+				employee = employeeMapper.find(empId).orElseThrow();
 				model.addAttribute("status", "revice");
 				
 			} else {
@@ -178,16 +178,58 @@ public class AdminController {
 			@Validated @ModelAttribute Passwords passwords,
 			BindingResult passwordsResult,
 			@RequestParam(required=false) String adminCheck,
+			@RequestParam(required=false) String nameReverseOrder,
+			@RequestParam(required=false) String addMiddleName,
 			@RequestParam(required=false) String status,
 			Model model) {
 		
 		model.addAttribute("user", user);
-
-		
 		
 		// statusがnullの場合はregisterを格納（基本は起こらない）
 		if(status == null || status.isBlank()) status = "register";
 		model.addAttribute("status", status);
+		
+		
+		
+		// 姓名順とミドルネームの有無の格納（前のページに戻ったとき用）
+		model.addAttribute("nameReverseOrder", nameReverseOrder);
+		model.addAttribute("addMiddleName", addMiddleName);
+		
+		// ミドルネームが無効なら、入力されているミドルネームを削除
+		if(addMiddleName == "checked") employee.setMiddleName(null);
+		
+		// フルネームの格納
+		String fullName = "";
+		String fullNameKana = "";
+		
+		String middleName = employee.getMiddleName();
+
+		if(nameReverseOrder == null) { // 姓→名の順
+			if(middleName == null || middleName.isBlank()) { // ミドルネームなし
+				fullName = employee.getLastName() + " " + employee.getFirstName();
+				fullNameKana = employee.getLastNameKana() + " " + employee.getFirstNameKana();
+			} else { // ミドルネームあり
+				fullName = employee.getLastName() + " " + employee.getMiddleName() 
+						+ " " + employee.getFirstName();
+				fullNameKana = employee.getLastNameKana() + " " + employee.getMiddleName() 
+						+ " " + employee.getFirstNameKana();
+			}
+		} else { // 名→姓の順
+			if(middleName == null || middleName.isBlank()) { // ミドルネームなし
+				fullName = employee.getFirstName() + " " + employee.getLastName();
+				fullNameKana = employee.getFirstNameKana() + " " + employee.getLastNameKana();
+			} else { // ミドルネームあり
+				fullName = employee.getFirstName() + " " + employee.getMiddleName() 
+						+ " " + employee.getLastName();
+				fullNameKana = employee.getFirstNameKana() + " " + employee.getMiddleName() 
+						+ " " + employee.getLastNameKana();
+			}
+		}
+		
+		employee.setFullName(fullName);
+		employee.setFullNameKana(fullNameKana);
+		
+		
 		
 		// 権限を設定
 		employee.setAuth(adminCheck != null && adminCheck.equals("checked") 
@@ -240,7 +282,7 @@ public class AdminController {
 		employee.setPassword(encodedPassword);
 		
 		// DBに登録
-		employeeRepository.save(employee);
+		employeeMapper.upsert(employee);
 		
 		
 		
@@ -252,7 +294,7 @@ public class AdminController {
 			model.addAttribute("complete", true);
 			return "admin/register_confirm";
 			
-		}else {
+		} else {
 			
 			redirectAttributes.addFlashAttribute("msg", "編集が完了しました");
 			return "redirect:/admin/employee_list";
@@ -272,12 +314,12 @@ public class AdminController {
 	 */
 	@PostMapping("/delete_employee")
 	public String delete_employee(@AuthenticationPrincipal UserDetails user, 
-			@RequestParam String id, RedirectAttributes redirectAttributes,
+			@RequestParam Long id, RedirectAttributes redirectAttributes,
 			Model model) {
 		
-		Employee employee = employeeRepository.findById(id).orElseThrow();
+		Employee employee = employeeMapper.findById(id).orElseThrow();
 		
-		employeeRepository.deleteById(id);
+		employeeMapper.deleteById(id);
 		
 		redirectAttributes.addFlashAttribute("msg", "削除が完了しました：" 
 				+ employee.getLastName() + employee.getFirstName()
@@ -305,42 +347,20 @@ public class AdminController {
 		
 		if(searchword != null && !(searchword.isBlank())) {
 			
-			// 検索ワードをIDとして検索
+			// 検索ワードを社員IDとして検索
 			Optional<Employee> empOpt
-					= employeeRepository.findByEmpId(searchword);
+					= employeeMapper.find(searchword);
 			
 			// IDとして検索して見つかった場合はそれをListに格納
-			// 見つからなかった場合はキーワードを名前として検索
-			if (empOpt.isPresent()) {
-				empList.add(empOpt.get());
-			} else {
-				
-				// 検索ワードの1文字目を取得
-				String s = searchword.substring(0,1);
-				
-				// 1文字目で苗字と名前を検索
-				empList = employeeRepository
-						.findByLastNameLike("%" + s + "%");
-				empList.addAll(employeeRepository
-						.findByFirstNameLike("%" + s + "%"));
-				
-				// その中から重複要素を削除し、
-				// フルネームに検索ワードが含まれるもののみに絞る
-				// その後社員IDの昇順で並び替え
-				empList = empList.stream()
-						.distinct()
-						.filter(e -> e != null
-								&& e.getLastName().concat(e.getFirstName())
-										.contains(searchword))
-						.sorted((e1, e2) -> e1.getEmpId().compareTo(e2.getEmpId()))
-						.toList();
-				
-			}
+			if (empOpt.isPresent()) empList.add(empOpt.get());
+
+			// キーワードを名前として検索、結果を格納
+			empList.addAll(employeeMapper.search(searchword));
 			
 		} else {
 
 			// キーワードが未入力なら全件表示し、社員IDの昇順で並び替え
-			empList = employeeRepository.findAll();
+			empList = employeeMapper.findAll();
 			Collections.sort(empList, (e1, e2) -> e1.getEmpId().compareTo(e2.getEmpId()));
 			
 		}
@@ -382,51 +402,33 @@ public class AdminController {
 		boolean getList = false; // 検索を実行したかどうかの判定
 		if (searchword != null) {
 			
-			// 社員IDとして検索
-			if (searchAll) {
-				monthlyReportList = monthlyReportRepository
-						.findByEmpIdAndSubmittedTrueOrderByIndexMonthDesc(searchword);
-			} else {
-				monthlyReportList = monthlyReportRepository
-						.findByEmpIdAndSubmittedTrueAndApprovalIdIsNullOrderByIndexMonth(searchword);
-			}
-			
-			// 社員IDとして検索して見つからなかった場合、
-			// 社員名として検索する
-			if (monthlyReportList == null || monthlyReportList.size() == 0) {
+			if(!(searchword.isBlank())) {
 				
-				// 検索ワードの1文字目を取得
-				// 検索ワードが空文字なら空文字を返す。
-				String s = !(searchword.isBlank()) ? searchword.substring(0,1) : "";
-				
-				// 1文字目で従業員名を検索
+				// 社員IDとして検索
 				if (searchAll) {
-					monthlyReportList = monthlyReportRepository
-							.findByNameLikeAndSubmittedTrueOrderByIndexMonthDesc("%" + s + "%");
+					monthlyReportList.addAll(monthlyReportMapper.findByEmpId(searchword));
 				} else {
-					monthlyReportList = monthlyReportRepository
-							.findByNameLikeAndSubmittedTrueAndApprovalIdIsNullOrderByIndexMonth("%" + s + "%");
+					monthlyReportList.addAll(monthlyReportMapper.findByEmpIdNotApproved(searchword));
 				}
-
-				// その中から重複要素を削除し、
-				// 従業員名に検索ワードが含まれるもののみに絞る
-				// 従業員名の苗字と名前の間には半角スペースがあるので、それを除外して検索
-				monthlyReportList = monthlyReportList.stream()
-						.distinct()
-						.filter(m -> m != null && m.getName().replaceAll(" ", "")
-								.contains(searchword))
-						.toList();
+				
+				// 社員名として検索
+				if (searchAll) {
+					monthlyReportList.addAll(monthlyReportMapper.findByName(searchword));
+				} else {
+					monthlyReportList.addAll(monthlyReportMapper.findByNameNotApproved(searchword));
+				}
 				
 			} else {
 				
 				// 検索ワードが空欄の場合は全件取得
-				monthlyReportList = monthlyReportRepository.findAll();
+				monthlyReportList = monthlyReportMapper.findAll();
 				
 			}
-				
+			
 			getList = true;
 			
 		}
+		
 		model.addAttribute("monthlyReportList", monthlyReportList);
 		model.addAttribute("getList", getList);
 		
@@ -451,15 +453,16 @@ public class AdminController {
 		
 		// 自身の登録情報を取得
 		Employee employee 
-				= employeeRepository.findByEmpId(user.getUsername()).orElseThrow();
+				= employeeMapper.find(user.getUsername()).orElseThrow();
+		
 		
 		
 		// Approvalを取得して承認
-		MonthlyReport report = monthlyReportRepository.findByEmpIdAndIndexMonth(empId, month).orElseThrow();
+		MonthlyReport report = monthlyReportMapper.find(empId, month).orElseThrow();
 		report.setApprovalId(employee.getEmpId());
 		report.setApprovalName(employee.getLastName() + " " + employee.getFirstName());
 		report.setApprovalDate(LocalDateTime.now(ZoneId.of("Japan")).toLocalDate());
-		monthlyReportRepository.save(report);
+		monthlyReportMapper.update(report);
 		
 		redirectAttributes.addFlashAttribute(
 				"msg", "月次報告を承認しました：" + report.getName()

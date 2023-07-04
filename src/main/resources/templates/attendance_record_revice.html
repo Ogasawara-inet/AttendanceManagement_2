@@ -19,7 +19,8 @@
 				
 				<!-- 月次報告が承認済みの場合 -->
 				<div th:if="${reportStatus == 'approved'}">
-					<div class="alert alert-danger">
+					<div class="alert alert-danger d-flex">
+						<div class="bi bi-exclamation-triangle-fill h2 my-auto mr-3"></div>
 						この勤怠管理表は月次報告として承認済みです。<br>
 						修正した場合は承認済みの月次報告は破棄されますので、<br>
 						再度月次報告を提出したのち、管理者の承認を受けてください。
@@ -28,7 +29,8 @@
 				
 				<!-- 月次報告が提出済みの場合 -->
 				<div th:if="${reportStatus == 'submitted'}">
-					<div class="alert alert-info">
+					<div class="alert alert-info d-flex">
+						<div class="bi bi-info-circle h2 my-auto mr-3"></div>
 						この勤怠管理表は月次報告として提出済みです。<br>
 						修正した場合は提出済みの月次報告は破棄されますので、<br>
 						再度月次報告を提出してください。

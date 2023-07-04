@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.AttendanceManagement.repository.WorkTimeMapper">
+
+	<insert id="insert">
+		insert into work_time
+		(emp_id, work_date, division,
+		start_time, finish_time, break_start_time, break_finish_time,
+		working_time, break_time, note)
+		values
+		(#{empId}, #{workDate}, #{division},
+		#{startTime}, #{finishTime}, #{breakStartTime}, #{breakFinishTime},
+		#{workingTime}, #{breakTime}, #{note})
+		where not exists
+		(select 1 from work_time
+		where emp_id = #{empId} and work_date = #{workDate})
+	</insert>
+
+	<update id="update">
+		update work_time set
+		emp_id = #{empId},
+		work_date = #{workDate},
+		division = #{division},
+		start_time = #{startTime},
+		finish_time = #{finishTime},
+		break_start_time = #{breakStartTime},
+		break_finish_fime = #{breakFinishTime},
+		working_time = #{workingTime},
+		break_time = #{breakTime},
+		note = #{note}
+	</update>
+
+	<insert id="upsert">
+		insert into work_time
+		(emp_id, work_date, division,
+		start_time, finish_time, break_start_time, break_finish_time,
+		working_time, break_time, note)
+		values
+		(#{empId}, #{workDate}, #{division},
+		#{startTime}, #{finishTime}, #{breakStartTime}, #{breakFinishTime},
+		#{workingTime}, #{breakTime}, #{note})
+		on conflict(emp_id, work_date)
+		do update set
+		emp_id = #{empId},
+		work_date = #{workDate},
+		division = #{division},
+		start_time = #{startTime},
+		finish_time = #{finishTime},
+		break_start_time = #{breakStartTime},
+		break_finish_time = #{breakFinishTime},
+		working_time = #{workingTime},
+		break_time = #{breakTime},
+		note = #{note}
+	</insert>
+
+
+
+	<select id="findAll" resultType="com.example.AttendanceManagement.entity.WorkTime">
+		select * from work_time
+		where emp_id = #{empId}
+	</select>
+
+	<select id="findByPeriod" resultType="com.example.AttendanceManagement.entity.WorkTime">
+		select * from work_time
+		where emp_id = #{empId}
+		and work_date &gt;= #{start} and work_date &lt;= #{end}
+	</select>
+
+	<select id="find" resultType="com.example.AttendanceManagement.entity.WorkTime">
+		select * from work_time
+		where emp_id = #{empId} and work_date = #{workDate}
+	</select>
+
+	<select id="countWorkingDays" resultType="Integer">
+		select count(working_time) from work_time
+		where emp_id = #{empId}
+		and work_date &gt;= #{start} and work_date &lt;= #{end}
+	</select>
+
+	<select id="countDivision" resultType="Integer">
+		select count(*) from work_time
+		where emp_id = #{empId} and division = #{division}
+		and work_date &gt;= #{start} and work_date &lt;= #{end}
+	</select>
+
+</mapper>
